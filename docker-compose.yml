@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: markovable
+    volumes:
+      - .:/var/www/html
+      - ./vendor:/var/www/html/vendor
+    working_dir: /var/www/html
+    networks:
+      - markovable-network
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+
+networks:
+  markovable-network:
+    driver: bridge

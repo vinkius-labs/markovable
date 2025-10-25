@@ -1,0 +1,3 @@
+Laravel é um framework elegante
+Laravel torna o desenvolvimento divertido
+Markovable chains produce engaging text
