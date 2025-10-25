@@ -18,13 +18,25 @@ class Tokenizer
             $strings = [];
 
             foreach ($input as $value) {
-                $strings = array_merge($strings, static::extractStrings($value));
+                foreach (static::extractStrings($value) as $string) {
+                    if ($string !== '') {
+                        $strings[] = $string;
+                    }
+                }
             }
 
-            return array_values(array_filter($strings, static fn($value) => $value !== ''));
+            return $strings;
         }
 
-        return array_values(array_filter(static::extractStrings($input), static fn($value) => $value !== ''));
+        $results = [];
+
+        foreach (static::extractStrings($input) as $string) {
+            if ($string !== '') {
+                $results[] = $string;
+            }
+        }
+
+        return $results;
     }
 
     /**
@@ -86,7 +98,9 @@ class Tokenizer
             $results = [];
 
             foreach ($value as $item) {
-                $results = array_merge($results, static::extractStrings($item));
+                foreach (static::extractStrings($item) as $string) {
+                    $results[] = $string;
+                }
             }
 
             return $results;

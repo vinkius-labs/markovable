@@ -448,23 +448,32 @@ class MarkovableChain
         $this->initialStates = [];
         $this->trained = false;
 
-        foreach ($this->corpus as $index => $record) {
+        $order = $this->order;
+        $startTokens = $this->startTokens();
+        $initialStateSet = [];
+
+        foreach ($this->corpus as $record) {
             $tokens = Tokenizer::tokenize($record);
 
             if (empty($tokens)) {
                 continue;
             }
 
-            $tokens = array_merge($this->startTokens(), $tokens, ['__END__']);
+            $tokens = array_merge($startTokens, $tokens);
+            $tokens[] = '__END__';
 
-            if (! in_array(implode(' ', array_slice($tokens, 0, $this->order)), $this->initialStates, true)) {
-                $this->initialStates[] = implode(' ', array_slice($tokens, 0, $this->order));
+            $initialPrefixTokens = array_slice($tokens, 0, $order);
+            $initialPrefix = implode(' ', $initialPrefixTokens);
+
+            if (! isset($initialStateSet[$initialPrefix])) {
+                $initialStateSet[$initialPrefix] = true;
+                $this->initialStates[] = $initialPrefix;
             }
 
             $totalTokens = count($tokens);
 
-            for ($i = $this->order; $i < $totalTokens; $i++) {
-                $prefixTokens = array_slice($tokens, $i - $this->order, $this->order);
+            for ($i = $order; $i < $totalTokens; $i++) {
+                $prefixTokens = array_slice($tokens, $i - $order, $order);
                 $prefix = implode(' ', $prefixTokens);
                 $next = $tokens[$i];
 
@@ -476,17 +485,21 @@ class MarkovableChain
             }
         }
 
-        foreach ($this->model as $prefix => $counts) {
+        foreach ($this->model as $prefix => &$counts) {
             $sum = array_sum($counts);
 
             if ($sum <= 0) {
                 continue;
             }
 
+            $normalizer = 1 / $sum;
+
             foreach ($counts as $token => $count) {
-                $this->model[$prefix][$token] = $count / $sum;
+                $counts[$token] = $count * $normalizer;
             }
         }
+
+        unset($counts);
 
         $this->trained = true;
 
