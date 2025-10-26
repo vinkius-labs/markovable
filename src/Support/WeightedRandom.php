@@ -21,7 +21,9 @@ class WeightedRandom
             return $uniform[array_rand($uniform)];
         }
 
-        $threshold = lcg_value() * $total;
+        $random = mt_rand();
+        $max = mt_getrandmax() ?: 1;
+        $threshold = ($random / $max) * $total;
         $cumulative = 0.0;
 
         foreach ($weights as $key => $weight) {
@@ -45,14 +47,11 @@ class WeightedRandom
             return null;
         }
 
-        $threshold = lcg_value();
-        $low = 0;
         $high = count($cumulative) - 1;
-        $last = $cumulative[$high];
-
-        if ($threshold > $last) {
-            return end($tokens);
-        }
+    $random = mt_rand();
+    $max = mt_getrandmax() ?: 1;
+    $threshold = ($random / $max) * ($cumulative[$high] ?: 1.0);
+    $low = 0;
 
         while ($low < $high) {
             $mid = intdiv($low + $high, 2);
