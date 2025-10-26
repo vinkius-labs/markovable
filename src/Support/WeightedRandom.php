@@ -48,10 +48,10 @@ class WeightedRandom
         }
 
         $high = count($cumulative) - 1;
-    $random = mt_rand();
-    $max = mt_getrandmax() ?: 1;
-    $threshold = ($random / $max) * ($cumulative[$high] ?: 1.0);
-    $low = 0;
+        $random = mt_rand();
+        $max = mt_getrandmax() ?: 1;
+        $threshold = ($random / $max) * ($cumulative[$high] ?: 1.0);
+        $low = 0;
 
         while ($low < $high) {
             $mid = intdiv($low + $high, 2);
