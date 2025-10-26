@@ -96,5 +96,3 @@ class TextGenerator implements Generator
         return substr($prefix, $firstSpace + 1) . ' ' . $nextToken;
     }
 }
-
-

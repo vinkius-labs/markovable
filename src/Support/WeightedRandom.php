@@ -48,6 +48,11 @@ class WeightedRandom
         $threshold = lcg_value();
         $low = 0;
         $high = count($cumulative) - 1;
+        $last = $cumulative[$high];
+
+        if ($threshold > $last) {
+            return end($tokens);
+        }
 
         while ($low < $high) {
             $mid = intdiv($low + $high, 2);
@@ -62,5 +67,3 @@ class WeightedRandom
         return $tokens[$low] ?? end($tokens);
     }
 }
-
-

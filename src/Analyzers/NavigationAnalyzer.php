@@ -111,6 +111,3 @@ class NavigationAnalyzer implements Analyzer
         return $top;
     }
 }
-
-
-

@@ -97,6 +97,3 @@ class TextAnalyzer implements Analyzer
         return $top;
     }
 }
-
-
-
