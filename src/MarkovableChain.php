@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Traits\Macroable;
 use RuntimeException;
 use VinkiusLabs\Markovable\Analyzers\AnomalyDetector;
+use VinkiusLabs\Markovable\Builders\PageRankBuilder;
 use VinkiusLabs\Markovable\Contracts\Analyzer as AnalyzerContract;
 use VinkiusLabs\Markovable\Contracts\Generator as GeneratorContract;
 use VinkiusLabs\Markovable\Contracts\Storage as StorageContract;
@@ -236,7 +237,15 @@ class MarkovableChain
         ]));
         $this->lastAnalysis = $result;
 
-        return $this->includeProbabilities ? $result : ($result['predictions'] ?? $result);
+        if ($this->includeProbabilities) {
+            return $result;
+        }
+
+        if (is_array($result)) {
+            return $result['predictions'] ?? $result;
+        }
+
+        return $result;
     }
 
     public function predict(string $seed, int $limit = 3, array $options = [])
@@ -496,6 +505,11 @@ class MarkovableChain
         $this->options = array_merge($this->options, $options);
 
         return $this;
+    }
+
+    public function pageRank(): PageRankBuilder
+    {
+        return new PageRankBuilder($this);
     }
 
     private function ensureModel(): void
@@ -824,5 +838,13 @@ class MarkovableChain
     public function getStorageName(): ?string
     {
         return $this->storageName;
+    }
+
+    /**
+     * @return array<string, array<string, float>>
+     */
+    public function getTransitionMatrix(): array
+    {
+        return $this->toProbabilities();
     }
 }

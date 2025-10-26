@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     zip \
     unzip \
+    autoconf \
+    build-essential \
+    gcc \
+    make \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -13,6 +17,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install Xdebug for test coverage collection
+RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 # Set working directory
 WORKDIR /var/www/html

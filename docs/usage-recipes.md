@@ -1,6 +1,6 @@
 # Usage Recipes
 
-These recipes showcase how Markovable flows through everyday developer tasks. Copy, tailor, and extend them to fuel your own automations.
+These recipes showcase how Markovable flows through everyday developer tasks. Copy, tailor, and extend them to fuel your own automations. For graph authority scenarios, cross-reference the [PageRank Analyzer Guide](./pagerank.md) and blueprint use cases for end-to-end playbooks.
 
 ## 1. Train Models From Rich Datasets
 
@@ -157,3 +157,23 @@ php artisan markovable:detect-anomalies \
 ```
 
 Pipe the table output to `--format=json` (via `jq`) or redirect to logs for downstream automation.
+
+## 12. Map Authority With PageRank
+
+```php
+use VinkiusLabs\Markovable\Facades\Markovable;
+use App\Markovable\NavigationGraphBuilder;
+
+$ranks = Markovable::pageRank()
+    ->useGraphBuilder(app(NavigationGraphBuilder::class))
+    ->dampingFactor(0.9)
+    ->groupBy('domain')
+    ->includeMetadata()
+    ->calculate();
+
+foreach ($ranks['groups'] as $domain => $details) {
+    reportAuthority($domain, $details['normalized_score']);
+}
+```
+
+Schedule deep-dive snapshots with `php artisan markovable:pagerank` and review the SaaS and community playbooks in [Markovable Use Cases](./use-cases.md#pagerank-saas-authority-mapping) for roll-out patterns.

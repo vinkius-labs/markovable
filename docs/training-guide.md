@@ -7,6 +7,7 @@ Training a Markovable chain is a CPU-first workflow. The engine relies on counti
 - Ensure the package is installed and configured (see [Getting Started](getting-started.md)).
 - Publish and run the migrations when you plan to persist models, anomalies, or cluster profiles beyond cache storage.
 - Decide where you want trained models to live: cache (default), database, or file storage. You can switch per training run.
+- When preparing graph-centric workloads, review the [PageRank Analyzer Guide](./pagerank.md) so your training datasets align with the expected adjacency structures.
 
 ## How Training Works
 
@@ -102,6 +103,25 @@ $churn = $builder->churnScore()->get();
 For scenario-specific guidance, see the [Predictive Intelligence Playbook](./use-cases/predictive-intelligence.md).
 
 - **Multi-tenant tip**: store baseline keys per tenant or cohort (e.g., `analytics::predictive-tenant:{id}`) and reuse the same predictive builder to feed dashboards, renewal playbooks, and billing forecasts.
+
+## Preparing PageRank Graphs
+
+Training datasets often double as the raw material for PageRank insights. Once you have a cached baseline or a curated edge list, pass the adjacency to the PageRank analyzer and iterate with the graph builder interface documented in [PageRank Graph Builders](./pagerank-graph-builders.md).
+
+```php
+use App\Markovable\NavigationGraphBuilder;
+use VinkiusLabs\Markovable\Facades\Markovable;
+
+// Cached navigation journeys feed the graph builder that emits adjacency weights.
+$authority = Markovable::pageRank()
+    ->useGraphBuilder(app(NavigationGraphBuilder::class))
+    ->dampingFactor(0.9)
+    ->topNodes(15)
+    ->includeMetadata()
+    ->calculate();
+```
+
+Graph builders can ingest the same corpora you curate during training, so keep your preprocessing reusable. The SaaS and community blueprints in [Markovable Use Cases](./use-cases.md) show how to cascade trained Markovable models into PageRank snapshots and downstream reports.
 
 ## Queueing Training Jobs
 

@@ -94,6 +94,13 @@ $sequence = Markovable::generator('sequence')->generate($model, 5, [
 - Persists anomalies to `Models\AnomalyRecord` and dispatches `Events\AnomalyDetected` / `Events\PatternEmerged` when configured.
 - Inject your own detectors by extending the class and registering a macro on `Markovable::detect()` or via service container binding.
 
+### PageRankAnalyzer (`Analyzers/PageRankAnalyzer.php`)
+- Calculates PageRank scores from navigation graphs, relationship matrices, or custom graph builders.
+- Options include `damping`, `threshold`, `iterations`, `top`, `group_by`, and `include_metadata`.
+- Returns a `PageRankResult` wrapping `PageRankNode` instances (raw score, normalized percentage, percentile) plus optional grouping metadata.
+- Accepts inline graphs via the `graph` option or resolves `Contracts\PageRankGraphBuilder` instances passed through `graph_builder`.
+- Paired with `PageRankCalculator` for optimized power-iteration, automatically handling dangling nodes and normalization.
+
 ### Custom Analyzer Registration
 
 ```php
@@ -169,6 +176,22 @@ $churn = $builder->churnScore()->get();
 $ltv = $builder->ltv()->includeHistoricalComparison()->get();
 ```
 
+### PageRankBuilder (`Builders/PageRankBuilder.php`)
+- Fluent facade entry point for PageRank calculations via `Markovable::pageRank()`.
+- Supports `withGraph()`, `useGraphBuilder()`, `dampingFactor()`, `convergenceThreshold()`, `maxIterations()`, `topNodes()`, `groupBy()`, and `includeMetadata()`.
+- Caches the last result internally and returns either the analyzer payload (`calculate()`) or the full `PageRankResult` object (`result()`).
+
+```php
+$result = Markovable::pageRank()
+    ->useGraphBuilder(new App\Markovable\SaaSAuthorityGraph())
+    ->dampingFactor(0.9)
+    ->groupBy('prefix')
+    ->includeMetadata()
+    ->result();
+
+PageRankSnapshot::capture('saas-authority:q2', $result);
+```
+
 ## Storage Drivers
 
 | Driver | Class | Persistence | Notes |
@@ -214,6 +237,7 @@ Override per chain via `useStorage('database')` or per cache call `cache($key, t
 - `markovable:report` assembles summaries from cached models and the anomaly log, rendering via DOMPDF for PDF output alongside HTML, Markdown, JSON, or CSV payloads.
 - Filter sections with `--sections=summary,predictions` or narrow the observation window using human-friendly periods (`--period=24h`, `--period=4w`).
 - Deliver reports automatically through `--email` (PDFs are attached) or `--webhook` (PDFs ship as base64 payloads) and persist exports with `--save=storage/path/report.pdf|.json|...`.
+- Tailor presentation with `--template`: `default` mirrors raw section data, whereas `summary` produces executive-friendly highlights and recommendations.
 - Report construction reuses `ModelMetrics` statistics and `MarkovableChain::getSequenceFrequencies()` to surface top transitions.
 
 ## Queue Integration
@@ -290,6 +314,12 @@ Event::listen(PredictionMade::class, function (PredictionMade $event) {
 - Select delivery format using `--format=pdf|html|json|csv|markdown` and restrict content with `--sections=`.
 - Adjust observation windows via human-readable `--period` values (`24h`, `7d`, `4w`, ...).
 - Deliver or store reports using `--email`, `--webhook`, and `--save`, with `--from-storage` targeting alternate caches.
+
+### `markovable:pagerank`
+- Execute PageRank calculations from the CLI using cached baselines, JSON adjacency files, or registered graph builders.
+- Options mirror the builder: `--graph`, `--graph-builder`, `--damping`, `--threshold`, `--iterations`, `--top`, `--group-by`, `--include-metadata`.
+- `--store` persists snapshots via `PageRankSnapshot::capture()`; `--export` writes payloads to disk for BI tooling.
+- Recommended when automating nightly ranking jobs or exporting scores to downstream systems without writing PHP glue.
 
 ## Facade Shortcuts and Macros
 - `Facades/Markovable` proxies to `MarkovableManager` and supports macro registration for custom conveniences.

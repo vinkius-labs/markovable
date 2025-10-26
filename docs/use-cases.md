@@ -14,6 +14,26 @@ Build navigation hints from behavioral data so new users discover value faster.
   3. Generate next-step hints inside onboarding flows.
 
 ```php
+$knowledge = Markovable::pageRank()
+  ->useGraphBuilder(new App\Markovable\KnowledgeGraph())
+  ->option('window', now()->subMonths(6))
+  ->groupBy(fn ($id) => Str::before($id, ':'))
+  ->calculate();
+```
+
+- **Benefits**: Faster self-service resolution, clear contributor recognition, and proactive documentation updates driven by rank shifts.
+ 
+Markovable is intentionally composable. Start with a single experiment, then let curiosity and iteration guide the roadmap.
+$knowledge = Markovable::pageRank()
+  ->useGraphBuilder(new App\Markovable\KnowledgeGraph())
+  ->option('window', now()->subMonths(6))
+  ->groupBy(fn ($id) => Str::before($id, ':'))
+  ->calculate();
+```
+
+- **Benefits**: Faster self-service resolution, clear contributor recognition, and proactive documentation updates driven by rank shifts.
+
+Markovable is intentionally composable. Start with a single experiment, then let curiosity and iteration guide the roadmap.
 Markovable::analyze('navigation')
     ->train($historicalTransitions)
     ->cache('onboarding-map')
@@ -145,5 +165,49 @@ if ($recommendations->isNotEmpty()) {
 ```
 
 - **Benefits**: Higher trial-to-paid conversion, tighter coordination between product and growth teams, automatic drift alerts that highlight when activation paths change.
+
+## PageRank SaaS Authority Mapping
+
+Surface the in-app steps, guides, and personas that most influence activation, renewal, and expansion.
+
+- **Docs**: [PageRank Analyzer Guide](./pagerank.md), [Graph Builders](./pagerank-graph-builders.md)
+- **Playbook**: [SaaS Authority Blueprint](./use-cases/pagerank-saas-authority.md)
+- **How to use**
+  1. Capture feature engagements and knowledge-base visits with consistent node identifiers.
+  2. Build a weighted graph that rewards upgrades, completions, and high-intent actions.
+  3. Run PageRank nightly, snapshot results, and alert on percentile drops for critical nodes.
+
+```php
+$authority = Markovable::pageRank()
+    ->useGraphBuilder(new App\Markovable\SaaSAuthorityGraph())
+    ->groupBy('prefix')
+    ->includeMetadata()
+    ->calculate();
+```
+
+- **Benefits**: Prioritized optimization backlog, automated drift detection for activation flows, shared visibility into the most influential features.
+
+## Community Knowledge Graph
+
+Elevate the most authoritative docs, tutorials, and community contributors.
+
+- **Docs**: [PageRank Analyzer Guide](./pagerank.md)
+- **Playbook**: [Community Knowledge Blueprint](./use-cases/pagerank-community-knowledge.md)
+- **How to use**
+  1. Store cross-links and engagements between articles, tutorials, and community replies.
+  2. Build a bipartite graph that weights accepted answers and high-value interactions.
+  3. Publish top-ranked content to search and documentation portals while notifying community managers about rising contributors.
+
+```php
+use Illuminate\Support\Str;
+
+$knowledge = Markovable::pageRank()
+    ->useGraphBuilder(new App\Markovable\KnowledgeGraph())
+    ->option('window', now()->subMonths(6))
+    ->groupBy(fn ($id) => Str::before($id, ':'))
+    ->calculate();
+```
+
+- **Benefits**: Faster self-service resolution, clear contributor recognition, and proactive documentation updates driven by rank shifts.
 
 Markovable is intentionally composable. Start with a single experiment, then let curiosity and iteration guide the roadmap.

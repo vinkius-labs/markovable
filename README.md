@@ -18,12 +18,14 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 2. [Training Guide](docs/training-guide.md)
 3. [Usage Recipes](docs/usage-recipes.md)
 4. [Use Cases](docs/use-cases.md)
-5. [Predictive Intelligence](docs/predictive-intelligence.md)
-6. [Architecture](docs/architecture.md)
-7. [Artisan Command Reference](docs/command-reference.md)
-8. [Artisan Commands Use Cases](docs/use-cases/artisan-commands.md)
-9. [Technical Reference](docs/technical-reference.md)
-10. [Contributing](docs/contributing.md)
+5. [PageRank Analyzer Guide](docs/pagerank.md)
+6. [PageRank Graph Builders](docs/pagerank-graph-builders.md)
+7. [Predictive Intelligence](docs/predictive-intelligence.md)
+8. [Architecture](docs/architecture.md)
+9. [Artisan Command Reference](docs/command-reference.md)
+10. [Artisan Commands Use Cases](docs/use-cases/artisan-commands.md)
+11. [Technical Reference](docs/technical-reference.md)
+12. [Contributing](docs/contributing.md)
 
 ## Quick Peek
 
@@ -47,11 +49,26 @@ $churnAlerts = $insights->churnScore()->get();
 $ltvReport = $insights->ltv()->get();
 ```
 
+```php
+use VinkiusLabs\Markovable\Facades\Markovable;
+use App\Markovable\SaaSAuthorityGraph;
+use VinkiusLabs\Markovable\Models\PageRankSnapshot;
+
+$authority = Markovable::pageRank()
+    ->useGraphBuilder(new SaaSAuthorityGraph())
+    ->dampingFactor(0.9)
+    ->groupBy('prefix')
+    ->includeMetadata()
+    ->result();
+
+PageRankSnapshot::capture('saas-authority:q2', $authority);
+```
+
 ## What’s Inside
 
 - Feature-rich `MarkovableChain` for training, caching, generating, and analyzing sequences.
 - Generators tuned for natural language and navigation flows.
-- Analyzer strategies to surface probabilities, detect anomalies, and predict next-best actions.
+- Analyzer strategies to surface probabilities, detect anomalies, calculate PageRank authority, and predict next-best actions.
 - Detectors and monitoring pipelines to surface unseen sequences, emerging patterns, seasonality shifts, and behaviour drift.
 - Traits and observers that keep Eloquent models self-training.
 - Artisan commands to orchestrate training, generation, and analysis from the CLI.

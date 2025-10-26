@@ -1,6 +1,7 @@
 <?php
 
 use VinkiusLabs\Markovable\Analyzers\NavigationAnalyzer;
+use VinkiusLabs\Markovable\Analyzers\PageRankAnalyzer;
 use VinkiusLabs\Markovable\Analyzers\TextAnalyzer;
 use VinkiusLabs\Markovable\Storage\CacheStorage;
 use VinkiusLabs\Markovable\Storage\DatabaseStorage;
@@ -40,6 +41,7 @@ return [
     'analyzers' => [
         'text' => TextAnalyzer::class,
         'navigation' => NavigationAnalyzer::class,
+        'pagerank' => PageRankAnalyzer::class,
     ],
 
     'anomaly' => [

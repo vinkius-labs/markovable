@@ -13,6 +13,7 @@ See [Artisan Command Operations Playbook](./use-cases/artisan-commands.md) for r
 - [markovable:generate](#markovablegenerate)
 - [markovable:analyze](#markovableanalyze)
 - [markovable:detect](#markovabledetect)
+- [markovable:pagerank](#markovablerank)
 
 ---
 
@@ -167,10 +168,10 @@ php artisan markovable:report {model}
 | `--email` | No | Comma-separated recipients for emailed report. |
 | `--webhook` | No | Target URL for JSON payload delivery. |
 | `--save` | No | Local disk path to store the generated report. |
-| `--template` | No | Placeholder for future template selection. |
+| `--template` | No | Report template: `default` (structured data) or `summary` (executive highlights). Defaults to `default`. |
 | `--from-storage` | No | Storage driver where the cached model is stored. Defaults to configured driver. |
 
-PDF generation uses [dompdf/dompdf](https://github.com/dompdf/dompdf) under the hood. When `--format=pdf` is used, emails include the PDF as an attachment and webhook payloads encode the binary via `report_base64`. Persisting with `--save` writes the raw PDF bytes to disk.
+PDF generation uses [dompdf/dompdf](https://github.com/dompdf/dompdf) under the hood. When `--format=pdf` is used, emails include the PDF as an attachment and webhook payloads encode the binary via `report_base64`. Persisting with `--save` writes the raw PDF bytes to disk. Templates tailor the layout per channel—`default` returns structured data for downstream tooling, while `summary` produces executive-ready HTML/Markdown/PDF output with key highlights.
 
 ### Examples
 
@@ -180,6 +181,59 @@ php artisan markovable:report journeys:latest --format=pdf --period=7d --email="
 
 # JSON summary pushed to Slack webhook
 php artisan markovable:report churn:model --format=json --sections=summary,predictions --webhook="https://hooks.slack.com/..."
+```
+
+---
+
+## `markovable:pagerank`
+
+Calculate PageRank scores from cached baselines, graph builders, or raw adjacency files.
+
+```bash
+php artisan markovable:pagerank {baseline}
+    {--graph=}
+    {--graph-builder=}
+    {--damping=0.85}
+    {--threshold=1.0E-6}
+    {--iterations=100}
+    {--top=}
+    {--group-by=}
+    {--include-metadata}
+    {--store}
+    {--export=}
+```
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `baseline` | No | Cache key or context identifier stored with the result metadata. Useful when comparing snapshots. |
+| `--graph` | Conditional | Path to a JSON file containing an adjacency list formatted as `{ "node": { "target": weight } }`. |
+| `--graph-builder` | Conditional | Container binding or class name implementing `Contracts\PageRankGraphBuilder`. |
+| `--damping` | No | Damping factor between `0` and `1`. Defaults to `0.85`. |
+| `--threshold` | No | Convergence tolerance (float). Defaults to `1e-6`. |
+| `--iterations` | No | Maximum iterations before the solver stops (default `100`). |
+| `--top` | No | Limit the number of nodes returned. |
+| `--group-by` | No | Grouping strategy: `prefix`, `domain`, `segment:n`, or a container-resolved callable. |
+| `--include-metadata` | No | Include metadata and embed the `PageRankResult` in the export payload. |
+| `--store` | No | Persist the calculation via `PageRankSnapshot::capture(baseline, result)`. |
+| `--export` | No | Write the payload to the provided path (`storage/app/pagerank.json`, etc.). |
+
+When both `--graph` and `--graph-builder` are omitted, the command falls back to the cached baseline returned by the resolved chain context.
+
+### Examples
+
+```bash
+# Calculate PageRank using a custom graph builder and persist snapshot
+php artisan markovable:pagerank analytics::saas-authority \
+    --graph-builder="App\\Markovable\\SaaSAuthorityGraph" \
+    --damping=0.9 \
+    --include-metadata \
+    --store
+
+# Run against a JSON adjacency file and export the results
+php artisan markovable:pagerank knowledge-base \
+    --graph=storage/app/graphs/knowledge.json \
+    --top=25 \
+    --export=storage/app/reports/knowledge-pagerank.json
 ```
 
 ---

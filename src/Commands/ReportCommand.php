@@ -22,6 +22,8 @@ class ReportCommand extends Command
 {
     use FormatsBytes;
 
+    private string $template = 'default';
+
     protected $signature = 'markovable:report
         {model : Model key to generate the report from}
         {--format=pdf : Report format (pdf, html, json, csv, markdown)}
@@ -30,7 +32,7 @@ class ReportCommand extends Command
         {--email= : Comma separated list of recipients}
         {--webhook= : Webhook URL to deliver the report}
         {--save= : Persist the report to the local storage disk}
-        {--template=default : Report template (reserved for future use)}
+        {--template=default : Report template (default, summary)}
         {--from-storage= : Storage driver where the model is cached}';
 
     protected $description = 'Generate Markovable analytics reports.';
@@ -41,6 +43,21 @@ class ReportCommand extends Command
         $format = strtolower((string) $this->option('format'));
         $sections = $this->parseSections((string) $this->option('sections'));
         $period = $this->parsePeriod((string) $this->option('period'));
+        $template = strtolower(trim((string) ($this->option('template') ?? 'default')));
+
+        if ($template === '') {
+            $template = 'default';
+        }
+
+        $allowedTemplates = ['default', 'summary'];
+
+        if (! in_array($template, $allowedTemplates, true)) {
+            $this->error("Unsupported template [{$template}]. Available templates: ".implode(', ', $allowedTemplates).'.');
+
+            return Command::FAILURE;
+        }
+
+        $this->template = $template;
         $storage = $this->option('from-storage') ?: config('markovable.storage', 'cache');
 
         if ($modelKey === '') {
@@ -64,20 +81,22 @@ class ReportCommand extends Command
         $metrics = ModelMetrics::fromChain($chain);
 
         $data = $this->collectReportData($modelKey, $metrics, $chain->getSequenceFrequencies(), $period);
-        $filtered = $this->filterSections($data, $sections);
+    $filtered = $this->filterSections($data, $sections);
+    $prepared = $this->applyTemplate($filtered, $data);
 
         $this->info("📊 Generating report: {$modelKey}");
         $this->info('📅 Period: '.$period['description']);
         $this->info('📄 Format: '.strtoupper($format));
+    $this->info('🧩 Template: '.Str::headline($this->template));
         $this->line('');
         $this->line('Building report...');
 
-        foreach (array_keys($filtered) as $section) {
+        foreach (array_keys($prepared) as $section) {
             $this->info('✅ '.Str::headline($section).' section: Complete');
         }
 
         try {
-            $report = $this->renderReport($filtered, $format);
+            $report = $this->renderReport($prepared, $format);
         } catch (InvalidArgumentException $exception) {
             $this->error($exception->getMessage());
 
@@ -86,7 +105,7 @@ class ReportCommand extends Command
 
         $this->handleReportPersistence($report, $format);
         $this->handleReportDelivery($report, $format, $modelKey);
-        $this->displayReportStatistics($report, $filtered);
+        $this->displayReportStatistics($report, $prepared);
 
         return Command::SUCCESS;
     }
@@ -187,6 +206,10 @@ class ReportCommand extends Command
 
     private function renderMarkdown(array $data): string
     {
+        if ($this->template === 'summary') {
+            return $this->renderSummaryMarkdown($data);
+        }
+
         $sections = [];
 
         foreach ($data as $section => $content) {
@@ -202,11 +225,108 @@ class ReportCommand extends Command
 
     private function renderHtml(array $data): string
     {
+        if ($this->template === 'summary') {
+            return $this->renderSummaryHtml($data);
+        }
+
         $html = '<html><head><title>Markovable Report</title></head><body>';
 
         foreach ($data as $section => $content) {
             $html .= '<h2>'.e(Str::headline($section)).'</h2>';
             $html .= '<pre>'.e(json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)).'</pre>';
+        }
+
+        return $html.'</body></html>';
+    }
+
+    private function renderSummaryMarkdown(array $data): string
+    {
+        $lines = ['# Markovable Report Summary'];
+
+        $summary = $data['summary'] ?? [];
+        $overview = $this->formatOverview($summary);
+
+        if ($overview !== []) {
+            $lines[] = '';
+            $lines[] = '## Overview';
+
+            foreach ($overview as $label => $value) {
+                $lines[] = '- **'.$label.':** '.$value;
+            }
+        }
+
+        $highlights = $data['highlights'] ?? [];
+
+        if ($highlights !== []) {
+            $lines[] = '';
+            $lines[] = '## Highlights';
+
+            foreach ($highlights as $label => $value) {
+                $lines[] = '- **'.$label.':** '.$value;
+            }
+        }
+
+        $recommendations = $data['recommendations'] ?? [];
+
+        if ($recommendations !== []) {
+            $lines[] = '';
+            $lines[] = '## Recommendations';
+
+            foreach ($recommendations as $recommendation) {
+                $lines[] = '- '.$recommendation;
+            }
+        }
+
+        return implode("\n", array_filter($lines, static fn ($line) => $line !== null));
+    }
+
+    private function renderSummaryHtml(array $data): string
+    {
+        $summary = $data['summary'] ?? [];
+        $overview = $this->formatOverview($summary);
+        $highlights = $data['highlights'] ?? [];
+        $recommendations = $data['recommendations'] ?? [];
+
+        $html = '<html><head><title>Markovable Report Summary</title>'
+            .'<style>'
+            .'body{font-family:Arial,sans-serif;color:#1f2933;background:#f8fafc;margin:0;padding:24px;}'
+            .'h1{font-size:28px;margin-bottom:16px;}'
+            .'h2{font-size:20px;margin-top:24px;margin-bottom:12px;}'
+            .'section{background:#ffffff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 2px rgba(15,23,42,0.08);}'
+            .'ul{margin:0;padding-left:20px;}'
+            .'li{margin-bottom:6px;}'
+            .'</style></head><body>';
+
+        $html .= '<h1>Markovable Report Summary</h1>';
+
+        if ($overview !== []) {
+            $html .= '<section><h2>Overview</h2><ul>';
+
+            foreach ($overview as $label => $value) {
+                $html .= '<li><strong>'.e($label).':</strong> '.e($value).'</li>';
+            }
+
+            $html .= '</ul></section>';
+        }
+
+        if ($highlights !== []) {
+            $html .= '<section><h2>Highlights</h2><ul>';
+
+            foreach ($highlights as $label => $value) {
+                $html .= '<li><strong>'.e($label).':</strong> '.e($value).'</li>';
+            }
+
+            $html .= '</ul></section>';
+        }
+
+        if ($recommendations !== []) {
+            $html .= '<section><h2>Recommendations</h2><ul>';
+
+            foreach ($recommendations as $recommendation) {
+                $html .= '<li>'.e($recommendation).'</li>';
+            }
+
+            $html .= '</ul></section>';
         }
 
         return $html.'</body></html>';
@@ -330,6 +450,116 @@ class ReportCommand extends Command
         $this->line('  - Sections included: '.count($sections));
         $this->line('  - Characters: '.number_format(strlen($report)));
         $this->line('  - Estimated size: '.$this->formatBytes(strlen($report)));
+    }
+
+    private function applyTemplate(array $selectedSections, array $fullData): array
+    {
+        if ($this->template !== 'summary') {
+            return $selectedSections;
+        }
+
+        $summary = $selectedSections['summary'] ?? $fullData['summary'] ?? [];
+        $predictions = $selectedSections['predictions'] ?? $fullData['predictions'] ?? [];
+        $anomalies = $selectedSections['anomalies'] ?? $fullData['anomalies'] ?? [];
+        $recommendations = $selectedSections['recommendations'] ?? $fullData['recommendations'] ?? [];
+
+        $highlights = $this->buildHighlights($summary, $predictions, $anomalies);
+
+        $result = [];
+
+        if ($summary !== []) {
+            $result['summary'] = $summary;
+        }
+
+        if ($highlights !== []) {
+            $result['highlights'] = $highlights;
+        }
+
+        if ($recommendations !== []) {
+            $result['recommendations'] = $recommendations;
+        }
+
+        return $result === [] ? $selectedSections : $result;
+    }
+
+    private function buildHighlights(array $summary, array $predictions, array $anomalies): array
+    {
+        $highlights = [];
+
+        if ($top = $this->topPrediction($predictions)) {
+            $sequence = $top['sequence'] ?? 'n/a';
+            $probability = isset($top['probability'])
+                ? number_format((float) $top['probability'] * 100, 2).'%' : null;
+            $count = $top['count'] ?? null;
+
+            $parts = [trim($sequence) !== '' ? $sequence : 'n/a'];
+
+            if ($probability) {
+                $parts[] = $probability;
+            }
+
+            if ($count !== null) {
+                $parts[] = 'count '.$count;
+            }
+
+            $highlights['Top Prediction'] = implode(' • ', $parts);
+        }
+
+        $highlights['Anomaly Count'] = number_format(count($anomalies));
+
+        if (isset($summary['confidence'])) {
+            $highlights['Confidence Score'] = number_format((float) $summary['confidence'], 2);
+        }
+
+        if (isset($summary['states'])) {
+            $highlights['Tracked States'] = number_format((int) $summary['states']);
+        }
+
+        return array_filter($highlights, static fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function topPrediction(array $predictions): ?array
+    {
+        return $predictions[0] ?? null;
+    }
+
+    private function formatOverview(array $summary): array
+    {
+        $overview = [];
+
+        if (isset($summary['model'])) {
+            $overview['Model'] = $summary['model'];
+        }
+
+        if (isset($summary['period'])) {
+            $overview['Period'] = $summary['period'];
+        }
+
+        if (isset($summary['generated_at'])) {
+            $overview['Generated At'] = $summary['generated_at'];
+        }
+
+        if (isset($summary['states'])) {
+            $overview['States'] = number_format((int) $summary['states']);
+        }
+
+        if (isset($summary['transitions'])) {
+            $overview['Transitions'] = number_format((int) $summary['transitions']);
+        }
+
+        if (isset($summary['sequence_count'])) {
+            $overview['Sequences'] = number_format((int) $summary['sequence_count']);
+        }
+
+        if (isset($summary['confidence'])) {
+            $overview['Confidence Score'] = number_format((float) $summary['confidence'], 2);
+        }
+
+        if (isset($summary['average_probability'])) {
+            $overview['Average Probability'] = number_format((float) $summary['average_probability'], 4);
+        }
+
+        return $overview;
     }
 
     private function parseSections(string $input): array
