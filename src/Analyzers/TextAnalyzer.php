@@ -34,8 +34,8 @@ class TextAnalyzer implements Analyzer
     }
 
     /**
-     * @param array<string, array<string, float>> $model
-     * @param array<int, string> $initialStates
+     * @param  array<string, array<string, float>>  $model
+     * @param  array<int, string>  $initialStates
      */
     private function resolvePrefix(array $model, int $order, ?string $seed, array $initialStates): string
     {
@@ -55,7 +55,7 @@ class TextAnalyzer implements Analyzer
     }
 
     /**
-     * @param array<string, float> $distribution
+     * @param  array<string, float>  $distribution
      * @return array<string, float>
      */
     private function selectTop(array $distribution, int $limit): array

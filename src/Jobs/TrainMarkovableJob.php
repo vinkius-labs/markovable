@@ -33,8 +33,8 @@ class TrainMarkovableJob implements ShouldQueue
     private array $options;
 
     /**
-     * @param array<int, string> $corpus
-     * @param array<string, mixed> $options
+     * @param  array<int, string>  $corpus
+     * @param  array<string, mixed>  $options
      */
     public function __construct(
         array $corpus,

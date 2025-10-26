@@ -59,9 +59,9 @@ class FileStorage implements Storage
 
     private function path(string $key): string
     {
-        $filename = str_replace(['/', '\\'], '-', $key) . '.json';
-        $base = function_exists('storage_path') ? storage_path('app/markovable') : sys_get_temp_dir() . '/markovable';
+        $filename = str_replace(['/', '\\'], '-', $key).'.json';
+        $base = function_exists('storage_path') ? storage_path('app/markovable') : sys_get_temp_dir().'/markovable';
 
-        return $base . DIRECTORY_SEPARATOR . $filename;
+        return $base.DIRECTORY_SEPARATOR.$filename;
     }
 }

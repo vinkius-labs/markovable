@@ -5,7 +5,7 @@ namespace VinkiusLabs\Markovable\Support;
 class WeightedRandom
 {
     /**
-     * @param array<string, float|int> $weights
+     * @param  array<string, float|int>  $weights
      */
     public static function choose(array $weights): ?string
     {
@@ -38,8 +38,8 @@ class WeightedRandom
     }
 
     /**
-     * @param array<int, string> $tokens
-     * @param array<int, float> $cumulative
+     * @param  array<int, string>  $tokens
+     * @param  array<int, float>  $cumulative
      */
     public static function chooseCumulative(array $tokens, array $cumulative): ?string
     {

@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Traits\Macroable;
 use RuntimeException;
+use VinkiusLabs\Markovable\Analyzers\AnomalyDetector;
 use VinkiusLabs\Markovable\Contracts\Analyzer as AnalyzerContract;
 use VinkiusLabs\Markovable\Contracts\Generator as GeneratorContract;
 use VinkiusLabs\Markovable\Contracts\Storage as StorageContract;
+use VinkiusLabs\Markovable\Detectors\ClusterAnalyzer;
 use VinkiusLabs\Markovable\Events\ContentGenerated;
 use VinkiusLabs\Markovable\Events\ModelTrained;
 use VinkiusLabs\Markovable\Events\PredictionMade;
 use VinkiusLabs\Markovable\Jobs\AnalyzePatternsJob;
 use VinkiusLabs\Markovable\Jobs\GenerateContentJob;
 use VinkiusLabs\Markovable\Jobs\TrainMarkovableJob;
-use VinkiusLabs\Markovable\Analyzers\AnomalyDetector;
-use VinkiusLabs\Markovable\Detectors\ClusterAnalyzer;
 use VinkiusLabs\Markovable\Support\MonitorPipeline;
 use VinkiusLabs\Markovable\Support\Tokenizer;
 
@@ -103,7 +103,7 @@ class MarkovableChain
     }
 
     /**
-     * @param mixed $value
+     * @param  mixed  $value
      */
     public function train($value): self
     {
@@ -117,7 +117,7 @@ class MarkovableChain
     }
 
     /**
-     * @param mixed $value
+     * @param  mixed  $value
      */
     public function trainFrom($value): self
     {
@@ -667,7 +667,7 @@ class MarkovableChain
             return $nextToken;
         }
 
-        return substr($currentPrefix, $firstSpace + 1) . ' ' . $nextToken;
+        return substr($currentPrefix, $firstSpace + 1).' '.$nextToken;
     }
 
     private function rebuildModelMetadataIfNeeded(): void

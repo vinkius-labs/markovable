@@ -2,9 +2,8 @@
 
 namespace VinkiusLabs\Markovable\Test\Feature\Testing;
 
-use VinkiusLabs\Markovable\Facades\Markovable;
-use VinkiusLabs\Markovable\Testing\MarkovableAssertions;
 use VinkiusLabs\Markovable\Test\TestCase;
+use VinkiusLabs\Markovable\Testing\MarkovableAssertions;
 
 class MarkovableAssertionsTest extends TestCase
 {

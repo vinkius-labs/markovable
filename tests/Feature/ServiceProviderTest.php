@@ -78,8 +78,10 @@ class ServiceProviderTest extends TestCase
 
     private function fakeApp(bool $console)
     {
-        return new class($console, $this->app) {
+        return new class($console, $this->app)
+        {
             private bool $console;
+
             private $delegate;
 
             public function __construct(bool $console, $delegate)

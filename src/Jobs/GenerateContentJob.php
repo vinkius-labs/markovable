@@ -86,6 +86,3 @@ class GenerateContentJob implements ShouldQueue
         return $this;
     }
 }
-
-
-

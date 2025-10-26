@@ -30,7 +30,7 @@ class MonitorPipeline
     }
 
     /**
-     * @param array<string, array<string, mixed>> $config
+     * @param  array<string, array<string, mixed>>  $config
      */
     public function detectAnomalies(array $config): self
     {
@@ -40,7 +40,7 @@ class MonitorPipeline
     }
 
     /**
-     * @param array<string, array<string, string>> $alerts
+     * @param  array<string, array<string, string>>  $alerts
      */
     public function alerts(array $alerts): self
     {
@@ -80,8 +80,8 @@ class MonitorPipeline
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $config
+     * @param  array<string, mixed>  $overrides
      */
     private function configureDetector(AnomalyDetector $detector, string $name, array $config, array &$overrides): void
     {
@@ -106,7 +106,7 @@ class MonitorPipeline
     }
 
     /**
-     * @param array<int, array<string, mixed>> $anomalies
+     * @param  array<int, array<string, mixed>>  $anomalies
      * @return array<string, array<string, string>>
      */
     private function determineAlerts(array $anomalies): array
@@ -127,9 +127,9 @@ class MonitorPipeline
     }
 
     /**
-     * @param array<string, mixed> $overrides
-     * @param array<string, mixed> $config
-     * @param array<int, string> $keys
+     * @param  array<string, mixed>  $overrides
+     * @param  array<string, mixed>  $config
+     * @param  array<int, string>  $keys
      */
     private function mergeOverrides(array &$overrides, array $config, array $keys): void
     {

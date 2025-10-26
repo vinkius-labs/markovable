@@ -9,7 +9,7 @@ use VinkiusLabs\Markovable\Support\Tokenizer;
 class UnseenSequenceDetector implements Detector
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      * @return array<int, array<string, mixed>>
      */
     public function detect(DetectionContext $context, array $config = []): array

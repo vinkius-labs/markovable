@@ -14,11 +14,11 @@ class EmergingPatternDetector implements Detector
 
     public function __construct(?PatternMatcher $matcher = null)
     {
-        $this->matcher = $matcher ?? new PatternMatcher();
+        $this->matcher = $matcher ?? new PatternMatcher;
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      * @return array<int, array<string, mixed>>
      */
     public function detect(DetectionContext $context, array $config = []): array
@@ -75,7 +75,7 @@ class EmergingPatternDetector implements Detector
     }
 
     /**
-     * @param array<int, mixed> $history
+     * @param  array<int, mixed>  $history
      */
     private function resolveTrend(array $history): string
     {
@@ -97,7 +97,7 @@ class EmergingPatternDetector implements Detector
     }
 
     /**
-     * @param array<string|int, mixed> $history
+     * @param  array<string|int, mixed>  $history
      */
     private function resolveFirstSeen(array $history): ?string
     {
@@ -117,7 +117,7 @@ class EmergingPatternDetector implements Detector
     }
 
     /**
-     * @param array<int, mixed> $history
+     * @param  array<int, mixed>  $history
      */
     private function resolveDaysActive(array $history): ?int
     {
@@ -125,7 +125,7 @@ class EmergingPatternDetector implements Detector
             return null;
         }
 
-        return count(array_filter($history, static fn($value) => (int) $value > 0));
+        return count(array_filter($history, static fn ($value) => (int) $value > 0));
     }
 
     private function confidence(float $growthRate, float $floor): float

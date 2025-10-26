@@ -133,7 +133,7 @@ class ClusterAnalyzer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $dataset
+     * @param  array<int, array<string, mixed>>  $dataset
      * @return array<int, array<int, array<string, mixed>>>
      */
     private function clusterDataset(array $dataset): array
@@ -156,7 +156,7 @@ class ClusterAnalyzer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $dataset
+     * @param  array<int, array<string, mixed>>  $dataset
      * @return array<int, array<int, array<string, mixed>>>
      */
     private function clusterDbscan(array $dataset): array
@@ -178,7 +178,7 @@ class ClusterAnalyzer
     }
 
     /**
-     * @param array<int, array<int, array<string, mixed>>> $clusters
+     * @param  array<int, array<int, array<string, mixed>>>  $clusters
      * @return array<int, array<string, mixed>>
      */
     private function profilesFromClusters(array $clusters, int $datasetSize): array
@@ -205,14 +205,14 @@ class ClusterAnalyzer
     }
 
     /**
-     * @param array<int, array<string, mixed>> $members
+     * @param  array<int, array<string, mixed>>  $members
      * @return array<string, mixed>
      */
     private function characteristicsFor(array $members): array
     {
         $size = count($members);
-        $totalLength = array_sum(array_map(static fn($member) => $member['length'], $members));
-        $totalFrequency = array_sum(array_map(static fn($member) => $member['frequency'], $members));
+        $totalLength = array_sum(array_map(static fn ($member) => $member['length'], $members));
+        $totalFrequency = array_sum(array_map(static fn ($member) => $member['frequency'], $members));
 
         $favorite = collect($members)->sortByDesc('frequency')->first();
         $avgSession = $size > 0 ? $totalLength / $size : 0.0;
@@ -261,12 +261,12 @@ class ClusterAnalyzer
             return '0%';
         }
 
-        return number_format(($count / $total) * 100, 1) . '%';
+        return number_format(($count / $total) * 100, 1).'%';
     }
 
     /**
-     * @param array<int, array<string, mixed>> $baseline
-     * @param array<int, array<string, mixed>> $current
+     * @param  array<int, array<string, mixed>>  $baseline
+     * @param  array<int, array<string, mixed>>  $current
      */
     private function clustersChanged(array $baseline, array $current): bool
     {

@@ -15,5 +15,3 @@ class SequenceGenerator extends TextGenerator
         return $result;
     }
 }
-
-

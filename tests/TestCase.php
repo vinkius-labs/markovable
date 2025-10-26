@@ -35,9 +35,7 @@ abstract class TestCase extends OrchestraTestCase
         parent::setUp();
 
         $this->loadLaravelMigrations();
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->artisan('migrate', ['--force' => true]);
     }
 }
-
-

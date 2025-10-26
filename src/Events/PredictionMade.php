@@ -46,6 +46,3 @@ class PredictionMade implements ShouldBroadcast
         ];
     }
 }
-
-
-

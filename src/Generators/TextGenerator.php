@@ -2,7 +2,6 @@
 
 namespace VinkiusLabs\Markovable\Generators;
 
-use RuntimeException;
 use VinkiusLabs\Markovable\Contracts\Generator;
 use VinkiusLabs\Markovable\Support\Tokenizer;
 use VinkiusLabs\Markovable\Support\WeightedRandom;
@@ -61,8 +60,8 @@ class TextGenerator implements Generator
     }
 
     /**
-     * @param array<string, array<string, float>> $model
-     * @param array<int, string> $initialStates
+     * @param  array<string, array<string, float>>  $model
+     * @param  array<int, string>  $initialStates
      */
     private function resolveInitialState(array $model, array $initialStates, int $order, ?string $seed): string
     {
@@ -93,6 +92,6 @@ class TextGenerator implements Generator
             return $nextToken;
         }
 
-        return substr($prefix, $firstSpace + 1) . ' ' . $nextToken;
+        return substr($prefix, $firstSpace + 1).' '.$nextToken;
     }
 }

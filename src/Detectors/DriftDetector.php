@@ -9,7 +9,7 @@ use VinkiusLabs\Markovable\Support\Tokenizer;
 class DriftDetector implements Detector
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      * @return array<int, array<string, mixed>>
      */
     public function detect(DetectionContext $context, array $config = []): array
@@ -46,7 +46,7 @@ class DriftDetector implements Detector
     }
 
     /**
-     * @param array<string, int> $sequences
+     * @param  array<string, int>  $sequences
      */
     private function averageLength(array $sequences): float
     {

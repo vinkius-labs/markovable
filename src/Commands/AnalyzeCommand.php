@@ -112,7 +112,7 @@ class AnalyzeCommand extends Command
     private function exportResult($result, string $path): void
     {
         $rows = $this->formatForTable($result);
-        $csv = implode("\n", array_map(static fn($row) => implode(';', $row), $rows));
+        $csv = implode("\n", array_map(static fn ($row) => implode(';', $row), $rows));
         File::put($path, $csv);
     }
 
@@ -139,7 +139,7 @@ class AnalyzeCommand extends Command
     }
 
     /**
-     * @param array<int, mixed> $predictions
+     * @param  array<int, mixed>  $predictions
      * @return array<int, array{0: string, 1: string}>
      */
     private function formatPredictionRows(array $predictions): array
@@ -199,13 +199,13 @@ class AnalyzeCommand extends Command
         }
 
         /** @var \Illuminate\Database\Eloquent\Model $instance */
-        $instance = new $model();
+        $instance = new $model;
 
         return $instance
             ->newQuery()
             ->pluck($field)
             ->filter()
-            ->map(static fn($value) => (string) $value)
+            ->map(static fn ($value) => (string) $value)
             ->all();
     }
 }

@@ -2,7 +2,6 @@
 
 namespace VinkiusLabs\Markovable\Test\Feature\Console;
 
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Bus;
@@ -23,7 +22,7 @@ class AnalyzeCommandTest extends TestCase
 
     public function test_analyze_command_exports_csv_with_filters(): void
     {
-        $dataset = __DIR__ . '/../../Fixtures/corpus.txt';
+        $dataset = __DIR__.'/../../Fixtures/corpus.txt';
         $export = tempnam(sys_get_temp_dir(), 'Markovable-analysis');
 
         Markovable::train(['cached analysis seed'])->cache('analyze-fixture');
@@ -50,7 +49,7 @@ class AnalyzeCommandTest extends TestCase
     {
         Bus::fake();
 
-        $dataset = __DIR__ . '/../../Fixtures/corpus.txt';
+        $dataset = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:analyze', [
             'profile' => 'text',
@@ -74,7 +73,7 @@ class AnalyzeCommandTest extends TestCase
 
     public function test_analyze_command_errors_when_file_missing(): void
     {
-        $missing = __DIR__ . '/missing.txt';
+        $missing = __DIR__.'/missing.txt';
 
         Markovable::train(['support missing file'])->cache('analyze-fixture');
 
@@ -82,7 +81,7 @@ class AnalyzeCommandTest extends TestCase
             'profile' => 'text',
             '--file' => $missing,
             '--cache-key' => 'analyze-fixture',
-        ])->expectsOutput('File ' . $missing . ' was not found.')
+        ])->expectsOutput('File '.$missing.' was not found.')
             ->assertSuccessful();
     }
 

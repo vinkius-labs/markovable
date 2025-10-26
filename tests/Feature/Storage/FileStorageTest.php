@@ -14,12 +14,12 @@ class FileStorageTest extends TestCase
     {
         parent::setUp();
 
-        $this->files = new Filesystem();
+        $this->files = new Filesystem;
     }
 
     public function test_put_get_expire_and_forget_cycle(): void
     {
-        $storage = new FileStorage();
+        $storage = new FileStorage;
         $payload = ['context' => 'text', 'model' => ['state' => ['next' => 1]]];
 
         $storage->put('file/key', $payload, 5);

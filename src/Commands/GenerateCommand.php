@@ -114,13 +114,13 @@ class GenerateCommand extends Command
         }
 
         /** @var \Illuminate\Database\Eloquent\Model $instance */
-        $instance = new $model();
+        $instance = new $model;
 
         return $instance
             ->newQuery()
             ->pluck($field)
             ->filter()
-            ->map(static fn($value) => (string) $value)
+            ->map(static fn ($value) => (string) $value)
             ->all();
     }
 }

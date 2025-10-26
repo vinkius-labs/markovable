@@ -14,7 +14,7 @@ class NavigationAnalyzerTest extends TestCase
     {
         parent::setUp();
 
-        $this->analyzer = new NavigationAnalyzer();
+        $this->analyzer = new NavigationAnalyzer;
     }
 
     public function test_analyze_returns_predictions_with_filters(): void

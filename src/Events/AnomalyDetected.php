@@ -21,7 +21,7 @@ class AnomalyDetected
     public string $severity;
 
     /**
-     * @param array<string, mixed> $anomaly
+     * @param  array<string, mixed>  $anomaly
      */
     public function __construct(string $modelKey, array $anomaly)
     {
@@ -42,7 +42,7 @@ class AnomalyDetected
         $probability = $this->anomaly['probability'] ?? null;
 
         if ($probability !== null) {
-            $probability = number_format((float) $probability * 100, 2) . '%';
+            $probability = number_format((float) $probability * 100, 2).'%';
         }
 
         return sprintf(

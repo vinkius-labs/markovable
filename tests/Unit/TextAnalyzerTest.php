@@ -14,7 +14,7 @@ class TextAnalyzerTest extends TestCase
     {
         parent::setUp();
 
-        $this->analyzer = new TextAnalyzer();
+        $this->analyzer = new TextAnalyzer;
     }
 
     public function test_analyze_returns_ranked_predictions(): void

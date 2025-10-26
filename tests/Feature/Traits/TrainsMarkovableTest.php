@@ -14,12 +14,16 @@ class TrainsMarkovableTest extends TestCase
 {
     public function test_train_markovable_trains_and_caches_chain(): void
     {
-        $model = new class extends Model {
+        $model = new class extends Model
+        {
             use TrainsMarkovable;
 
             protected $table = 'posts';
+
             protected $guarded = [];
+
             public $timestamps = false;
+
             public array $markovableColumns = ['body'];
         };
 
@@ -41,11 +45,14 @@ class TrainsMarkovableTest extends TestCase
     {
         Bus::fake();
 
-        $model = new class extends Model {
+        $model = new class extends Model
+        {
             use TrainsMarkovable;
 
             protected $table = 'articles';
+
             protected $guarded = [];
+
             public $timestamps = false;
         };
 

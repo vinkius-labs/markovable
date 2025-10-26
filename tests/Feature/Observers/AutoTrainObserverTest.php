@@ -14,10 +14,14 @@ class AutoTrainObserverTest extends TestCase
 {
     public function test_saved_trains_and_caches_model_based_on_markovable_columns(): void
     {
-        $model = new class extends Model {
+        $model = new class extends Model
+        {
             protected $table = 'virtual_models';
+
             protected $guarded = [];
+
             public $timestamps = false;
+
             public array $markovableColumns = ['content'];
         };
 
@@ -30,7 +34,7 @@ class AutoTrainObserverTest extends TestCase
 
         Cache::forget($expectedKey);
 
-        $observer = new AutoTrainObserver();
+        $observer = new AutoTrainObserver;
         $observer->saved($model);
 
         $this->assertTrue(Cache::has($expectedKey));
@@ -46,9 +50,12 @@ class AutoTrainObserverTest extends TestCase
             'queue' => 'markovable-jobs',
         ]);
 
-        $model = new class extends Model {
+        $model = new class extends Model
+        {
             protected $table = 'documents';
+
             protected $guarded = [];
+
             public $timestamps = false;
         };
 

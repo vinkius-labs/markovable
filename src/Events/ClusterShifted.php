@@ -20,8 +20,8 @@ class ClusterShifted
     public array $current;
 
     /**
-     * @param array<int, array<string, mixed>> $baseline
-     * @param array<int, array<string, mixed>> $current
+     * @param  array<int, array<string, mixed>>  $baseline
+     * @param  array<int, array<string, mixed>>  $current
      */
     public function __construct(array $baseline, array $current)
     {

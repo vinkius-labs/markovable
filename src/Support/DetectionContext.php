@@ -112,7 +112,7 @@ class DetectionContext
     }
 
     /**
-     * @param array<int, string> $tokens
+     * @param  array<int, string>  $tokens
      */
     public function probabilityFromTokens(array $tokens): float
     {
@@ -159,7 +159,7 @@ class DetectionContext
     }
 
     /**
-     * @param array<int, string> $corpus
+     * @param  array<int, string>  $corpus
      * @return array<string, int>
      */
     private function buildCurrentSequences(array $corpus): array
@@ -192,6 +192,6 @@ class DetectionContext
             return $nextToken;
         }
 
-        return substr($currentPrefix, $firstSpace + 1) . ' ' . $nextToken;
+        return substr($currentPrefix, $firstSpace + 1).' '.$nextToken;
     }
 }

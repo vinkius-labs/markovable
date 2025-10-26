@@ -10,7 +10,6 @@ use VinkiusLabs\Markovable\Commands\DetectAnomaliesCommand;
 use VinkiusLabs\Markovable\Commands\GenerateCommand;
 use VinkiusLabs\Markovable\Commands\TrainCommand;
 use VinkiusLabs\Markovable\Observers\AutoTrainObserver;
-use VinkiusLabs\Markovable\MarkovableManager;
 
 class ServiceProvider extends BaseServiceProvider
 {
@@ -19,9 +18,9 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/markovable.php', 'markovable');
+        $this->mergeConfigFrom(__DIR__.'/../config/markovable.php', 'markovable');
 
-        $this->app->singleton(MarkovableManager::class, static fn($app) => new MarkovableManager($app));
+        $this->app->singleton(MarkovableManager::class, static fn ($app) => new MarkovableManager($app));
         $this->app->alias(MarkovableManager::class, 'markovable.manager');
         $this->app->alias(MarkovableManager::class, 'markovable');
     }
@@ -45,11 +44,11 @@ class ServiceProvider extends BaseServiceProvider
         }
 
         $this->publishes([
-            __DIR__ . '/../config/markovable.php' => $this->app->configPath('markovable.php'),
+            __DIR__.'/../config/markovable.php' => $this->app->configPath('markovable.php'),
         ], 'markovable-config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations/' => $this->app->databasePath('migrations'),
+            __DIR__.'/../database/migrations/' => $this->app->databasePath('migrations'),
         ], 'markovable-migrations');
     }
 
@@ -104,7 +103,7 @@ class ServiceProvider extends BaseServiceProvider
 
     private function loadMigrations(): void
     {
-        $migrationsPath = __DIR__ . '/../database/migrations';
+        $migrationsPath = __DIR__.'/../database/migrations';
 
         if (is_dir($migrationsPath)) {
             $this->loadMigrationsFrom($migrationsPath);

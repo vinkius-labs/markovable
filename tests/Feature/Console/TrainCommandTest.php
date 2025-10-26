@@ -22,7 +22,7 @@ class TrainCommandTest extends TestCase
 
     public function test_train_command_trains_model_from_file(): void
     {
-        $file = __DIR__ . '/../../Fixtures/corpus.txt';
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:train', [
             '--file' => $file,
@@ -38,7 +38,7 @@ class TrainCommandTest extends TestCase
     {
         Bus::fake();
 
-        $file = __DIR__ . '/../../Fixtures/corpus.txt';
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:train', [
             '--file' => $file,
@@ -58,11 +58,11 @@ class TrainCommandTest extends TestCase
 
     public function test_train_command_errors_when_file_missing(): void
     {
-        $missing = __DIR__ . '/missing.txt';
+        $missing = __DIR__.'/missing.txt';
 
         $this->artisan('markovable:train', [
             '--file' => $missing,
-        ])->expectsOutput('File ' . $missing . ' was not found.')
+        ])->expectsOutput('File '.$missing.' was not found.')
             ->assertExitCode(Command::FAILURE);
     }
 

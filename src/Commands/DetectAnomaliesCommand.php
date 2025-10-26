@@ -99,7 +99,7 @@ class DetectAnomaliesCommand extends Command
             $decoded = json_decode($contents, true);
 
             if (is_array($decoded)) {
-                return array_map(static fn($item) => is_array($item) ? implode(' ', $item) : (string) $item, $decoded);
+                return array_map(static fn ($item) => is_array($item) ? implode(' ', $item) : (string) $item, $decoded);
             }
         }
 

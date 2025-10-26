@@ -22,8 +22,8 @@ class PatternEmerged
     public array $payload;
 
     /**
-     * @param array<int, string> $pattern
-     * @param array<string, mixed> $payload
+     * @param  array<int, string>  $pattern
+     * @param  array<string, mixed>  $payload
      */
     public function __construct(array $pattern, float $growth, array $payload)
     {

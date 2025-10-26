@@ -2,7 +2,6 @@
 
 namespace VinkiusLabs\Markovable\Test\Feature\Console;
 
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Bus;
@@ -23,7 +22,7 @@ class GenerateCommandTest extends TestCase
 
     public function test_generate_command_writes_output_file(): void
     {
-        $file = __DIR__ . '/../../Fixtures/corpus.txt';
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
         $output = tempnam(sys_get_temp_dir(), 'Markovable');
 
         $this->artisan('markovable:generate', [
@@ -44,7 +43,7 @@ class GenerateCommandTest extends TestCase
     {
         Bus::fake();
 
-        $file = __DIR__ . '/../../Fixtures/corpus.txt';
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:generate', [
             '--file' => $file,
@@ -67,14 +66,14 @@ class GenerateCommandTest extends TestCase
 
     public function test_generate_command_errors_when_file_missing(): void
     {
-        $missing = __DIR__ . '/missing.txt';
+        $missing = __DIR__.'/missing.txt';
 
         Markovable::train(['generate fallback'])->cache('generate-fixture');
 
         $this->artisan('markovable:generate', [
             '--file' => $missing,
             '--cache-key' => 'generate-fixture',
-        ])->expectsOutput('File ' . $missing . ' was not found.')
+        ])->expectsOutput('File '.$missing.' was not found.')
             ->assertSuccessful();
     }
 

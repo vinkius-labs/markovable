@@ -18,8 +18,6 @@ use VinkiusLabs\Markovable\Support\Tokenizer;
 
 class AnomalyDetector
 {
-    private MarkovableChain $chain;
-
     private DetectionContext $context;
 
     /** @var array<string, DetectorContract> */
@@ -33,8 +31,6 @@ class AnomalyDetector
     private bool $dispatchEvents;
 
     private string $baselineKey;
-
-    private ?string $storageName;
 
     private float $defaultSeasonalityThreshold;
 
@@ -67,22 +63,22 @@ class AnomalyDetector
 
     public function unseenSequences(): self
     {
-        return $this->addDetector('unseenSequence', new UnseenSequenceDetector());
+        return $this->addDetector('unseenSequence', new UnseenSequenceDetector);
     }
 
     public function emergingPatterns(): self
     {
-        return $this->addDetector('emergingPattern', new EmergingPatternDetector());
+        return $this->addDetector('emergingPattern', new EmergingPatternDetector);
     }
 
     public function detectSeasonality(): self
     {
-        return $this->addDetector('seasonality', new SeasonalAnalyzer());
+        return $this->addDetector('seasonality', new SeasonalAnalyzer);
     }
 
     public function drift(): self
     {
-        return $this->addDetector('drift', new DriftDetector());
+        return $this->addDetector('drift', new DriftDetector);
     }
 
     public function minLength(int $length): self
@@ -175,7 +171,7 @@ class AnomalyDetector
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<int, array<string, mixed>>
      */
     public function get(array $overrides = []): array
@@ -217,7 +213,7 @@ class AnomalyDetector
     }
 
     /**
-     * @param array<int, array<string, mixed>> $results
+     * @param  array<int, array<string, mixed>>  $results
      */
     private function persistIfNeeded(array $results): void
     {
@@ -239,7 +235,7 @@ class AnomalyDetector
     }
 
     /**
-     * @param array<int, array<string, mixed>> $results
+     * @param  array<int, array<string, mixed>>  $results
      */
     private function dispatchEventsIfNeeded(array $results): void
     {
@@ -275,7 +271,7 @@ class AnomalyDetector
     }
 
     /**
-     * @param array<string, mixed> $result
+     * @param  array<string, mixed>  $result
      * @return array<int, string>
      */
     private function normalizeSequence(array $result): array

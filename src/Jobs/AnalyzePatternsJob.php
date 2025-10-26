@@ -96,6 +96,3 @@ class AnalyzePatternsJob implements ShouldQueue
         return $this;
     }
 }
-
-
-

@@ -10,5 +10,3 @@ interface Storage
 
     public function forget(string $key): void;
 }
-
-

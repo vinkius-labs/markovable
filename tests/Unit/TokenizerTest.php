@@ -26,7 +26,7 @@ class TokenizerTest extends TestCase
         ], $tokens);
     }
 
-    public function test_corpus_extracts_Markovable_columns_from_model(): void
+    public function test_corpus_extracts_markovable_columns_from_model(): void
     {
         $model = new class extends Model
         {

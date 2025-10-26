@@ -3,8 +3,8 @@
 namespace VinkiusLabs\Markovable\Test\Feature\Traits;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use VinkiusLabs\Markovable\Models\MarkovableModel;
 use VinkiusLabs\Markovable\Test\TestCase;
 use VinkiusLabs\Markovable\Traits\HasMarkovableScopes;
@@ -30,11 +30,14 @@ class HasMarkovableScopesTest extends TestCase
 
     public function test_scopes_filter_and_eager_load_markovable_data(): void
     {
-        $modelClass = new class extends Model {
+        $modelClass = new class extends Model
+        {
             use HasMarkovableScopes;
 
             protected $table = 'tracked_entities';
+
             protected $guarded = [];
+
             public $timestamps = false;
         };
 

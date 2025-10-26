@@ -18,7 +18,7 @@ class DatabaseStorageTest extends TestCase
 
     public function test_put_get_and_forget_record(): void
     {
-        $storage = new DatabaseStorage();
+        $storage = new DatabaseStorage;
         $payload = [
             'context' => 'navigation',
             'model' => ['state' => ['link' => 1]],

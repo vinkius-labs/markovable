@@ -13,7 +13,7 @@ class TextGeneratorTest extends TestCase
     {
         parent::setUp();
 
-        $this->generator = new TextGenerator();
+        $this->generator = new TextGenerator;
     }
 
     public function test_generate_returns_empty_string_when_model_is_empty(): void

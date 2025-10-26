@@ -8,7 +8,7 @@ use VinkiusLabs\Markovable\Support\DetectionContext;
 class SeasonalAnalyzer implements Detector
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      * @return array<int, array<string, mixed>>
      */
     public function detect(DetectionContext $context, array $config = []): array
@@ -43,7 +43,7 @@ class SeasonalAnalyzer implements Detector
             }
 
             $results[] = [
-                'pattern' => $metric . '_effect',
+                'pattern' => $metric.'_effect',
                 'type' => 'seasonality',
                 'divergence' => $divergence,
                 'metrics' => $profile,
@@ -57,8 +57,8 @@ class SeasonalAnalyzer implements Detector
     }
 
     /**
-     * @param array<string|int, float|int> $baseline
-     * @param array<string|int, float|int> $current
+     * @param  array<string|int, float|int>  $baseline
+     * @param  array<string|int, float|int>  $current
      */
     private function klDivergence(array $baseline, array $current): float
     {

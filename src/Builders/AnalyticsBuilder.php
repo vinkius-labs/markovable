@@ -47,7 +47,3 @@ class AnalyticsBuilder extends MarkovableChain
         return parent::predict($seed, $limit, array_merge($options, $this->filters));
     }
 }
-
-
-
-

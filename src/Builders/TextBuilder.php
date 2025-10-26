@@ -35,7 +35,3 @@ class TextBuilder extends MarkovableChain
         return parent::generate($words, $options);
     }
 }
-
-
-
-

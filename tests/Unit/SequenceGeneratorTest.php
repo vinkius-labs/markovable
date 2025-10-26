@@ -9,7 +9,7 @@ class SequenceGeneratorTest extends TestCase
 {
     public function test_generate_returns_plain_text_by_default(): void
     {
-        $generator = new SequenceGenerator();
+        $generator = new SequenceGenerator;
 
         $model = [
             '__START__ __START__' => ['A' => 1.0],
@@ -27,7 +27,7 @@ class SequenceGeneratorTest extends TestCase
 
     public function test_generate_can_return_json_array(): void
     {
-        $generator = new SequenceGenerator();
+        $generator = new SequenceGenerator;
 
         $model = [
             '__START__ __START__' => ['north' => 1.0],

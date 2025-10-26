@@ -23,6 +23,3 @@ class ContentGenerated
         $this->content = $content;
     }
 }
-
-
-

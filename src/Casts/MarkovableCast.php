@@ -9,7 +9,7 @@ use VinkiusLabs\Markovable\MarkovableChain;
 class MarkovableCast implements CastsAttributes
 {
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function get($model, string $key, $value, array $attributes): ?MarkovableChain
     {
@@ -21,7 +21,7 @@ class MarkovableCast implements CastsAttributes
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function set($model, string $key, $value, array $attributes)
     {

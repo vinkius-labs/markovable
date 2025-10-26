@@ -2,16 +2,16 @@
 
 namespace VinkiusLabs\Markovable;
 
+use BadMethodCallException;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Traits\Macroable;
-use BadMethodCallException;
 use InvalidArgumentException;
+use VinkiusLabs\Markovable\Builders\AnalyticsBuilder;
+use VinkiusLabs\Markovable\Builders\TextBuilder;
 use VinkiusLabs\Markovable\Contracts\Analyzer as AnalyzerContract;
 use VinkiusLabs\Markovable\Contracts\Generator as GeneratorContract;
 use VinkiusLabs\Markovable\Contracts\Storage as StorageContract;
-use VinkiusLabs\Markovable\Builders\AnalyticsBuilder;
-use VinkiusLabs\Markovable\Builders\TextBuilder;
 use VinkiusLabs\Markovable\Generators\SequenceGenerator;
 use VinkiusLabs\Markovable\Generators\TextGenerator;
 
@@ -144,7 +144,8 @@ class MarkovableManager
 
     /**
      * @template T
-     * @param callable|class-string<T> $resolver
+     *
+     * @param  callable|class-string<T>  $resolver
      * @return T
      */
     private function resolve($resolver)

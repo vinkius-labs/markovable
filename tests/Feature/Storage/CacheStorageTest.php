@@ -12,7 +12,7 @@ class CacheStorageTest extends TestCase
     {
         Cache::clear();
 
-        $storage = new CacheStorage();
+        $storage = new CacheStorage;
         $payload = ['order' => 2, 'model' => ['state' => ['next' => 1.0]]];
 
         $storage->put('key', $payload, 60);

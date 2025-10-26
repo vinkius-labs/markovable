@@ -62,9 +62,9 @@ class AutoTrainObserver
         $columns = $this->columns($model);
 
         return collect($columns)
-            ->map(static fn(string $column) => data_get($model, $column))
+            ->map(static fn (string $column) => data_get($model, $column))
             ->filter()
-            ->map(static fn($value) => (string) $value);
+            ->map(static fn ($value) => (string) $value);
     }
 
     private function columns(Model $model): array

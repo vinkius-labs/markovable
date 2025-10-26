@@ -12,7 +12,7 @@ trait TrainsMarkovable
 {
     public static function bootTrainsMarkovable(): void
     {
-        static::observe(new AutoTrainObserver());
+        static::observe(new AutoTrainObserver);
     }
 
     public function trainMarkovable(?array $columns = null): void
@@ -49,8 +49,8 @@ trait TrainsMarkovable
         $columns ??= property_exists($this, 'markovableColumns') ? (array) $this->markovableColumns : [];
 
         return collect($columns)
-            ->map(fn(string $column) => data_get($this, $column))
+            ->map(fn (string $column) => data_get($this, $column))
             ->filter()
-            ->map(static fn($value) => (string) $value);
+            ->map(static fn ($value) => (string) $value);
     }
 }

@@ -20,6 +20,3 @@ class ModelTrained
         $this->chain = $chain;
     }
 }
-
-
-

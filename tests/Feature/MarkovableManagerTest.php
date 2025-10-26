@@ -36,7 +36,8 @@ class MarkovableManagerTest extends TestCase
         $manager = $this->app->make(MarkovableManager::class);
 
         $manager->extendAnalyzer('custom', function () {
-            return new class implements Analyzer {
+            return new class implements Analyzer
+            {
                 public function analyze(MarkovableChain $chain, array $model, array $options = []): array
                 {
                     return ['predictions' => []];
@@ -45,7 +46,8 @@ class MarkovableManagerTest extends TestCase
         });
 
         $manager->extendGenerator('custom', function () {
-            return new class implements Generator {
+            return new class implements Generator
+            {
                 public function generate(array $model, int $length, array $options = []): string
                 {
                     return 'generated';
@@ -54,7 +56,8 @@ class MarkovableManagerTest extends TestCase
         });
 
         $manager->extendStorage('memory', function () {
-            return new class implements \VinkiusLabs\Markovable\Contracts\Storage {
+            return new class implements \VinkiusLabs\Markovable\Contracts\Storage
+            {
                 public array $payloads = [];
 
                 public function put(string $key, array $payload, ?int $ttl = null): void
@@ -107,7 +110,8 @@ class MarkovableManagerTest extends TestCase
         $manager = $this->app->make(MarkovableManager::class);
 
         $manager->extend('alias', function () {
-            return new class implements Analyzer {
+            return new class implements Analyzer
+            {
                 public function analyze(MarkovableChain $chain, array $model, array $options = []): array
                 {
                     return ['predictions' => []];
@@ -138,7 +142,7 @@ class MarkovableManagerTest extends TestCase
 
         $this->assertIsString($generated);
 
-        MarkovableManager::macro('macroStub', fn() => 'macro result');
+        MarkovableManager::macro('macroStub', fn () => 'macro result');
 
         $this->assertSame('macro result', $manager->macroStub());
 

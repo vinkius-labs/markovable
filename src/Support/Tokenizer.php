@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 class Tokenizer
 {
     /**
-     * @param mixed $input
+     * @param  mixed  $input
      * @return array<int, string>
      */
     public static function corpus($input): array
@@ -85,9 +85,9 @@ class Tokenizer
 
             if (! empty($columns)) {
                 return collect($columns)
-                    ->map(static fn(string $column) => data_get($value, $column))
+                    ->map(static fn (string $column) => data_get($value, $column))
                     ->filter()
-                    ->map(static fn($item) => (string) $item)
+                    ->map(static fn ($item) => (string) $item)
                     ->all();
             }
 
