@@ -14,6 +14,8 @@ Once installed, publish the configuration if you want to customize defaults:
 php artisan vendor:publish --provider="VinkiusLabs\\Markovable\\ServiceProvider"
 ```
 
+Review every option and environment override in the [Configuration Guide](configuration.md) before rolling changes into staging or production.
+
 ## Requirements
 
 - PHP 8.2 or 8.3

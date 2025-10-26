@@ -200,7 +200,7 @@ PageRankSnapshot::capture('saas-authority:q2', $result);
 | `database` | `Storage/DatabaseStorage` | `markovable_models` table | Stores JSON payload plus `expires_at`; auto-garbage-collects expired rows. |
 | `file` | `Storage/FileStorage` | Filesystem path | Writes JSON to disk; ensure directories exist and permissions match PHP user. |
 
-Configure in `config/markovable.php`:
+Configure in `config/markovable.php` (see [Configuration Guide](./configuration.md) for full context):
 
 ```php
 return [
@@ -403,7 +403,7 @@ class SequenceGeneratorTest extends TestCase
 - **CLI Tooling**: Combine Artisan commands with cron or Git hooks to re-train models from fresh datasets.
 
 ## Reference Paths
-- Configuration: `config/markovable.php`
+- Configuration: [`config/markovable.php`](../config/markovable.php) — explained in the [Configuration Guide](./configuration.md)
 - Service Provider: `src/ServiceProvider.php` (registers bindings, publishes config, commands, migrations).
 - Migration stubs: `database/migrations/2024_01_01_000000_create_markovable_models_table.php` (cached models), `database/migrations/2024_01_01_020000_create_markovable_snapshot_and_schedule_tables.php` (snapshots and schedules).
 - Doctrine-style contracts: `src/Contracts/Analyzer.php`, `src/Contracts/Generator.php`, `src/Contracts/Storage.php`.

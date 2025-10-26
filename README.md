@@ -15,17 +15,18 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 ## Table of Contents
 
 1. [Getting Started](docs/getting-started.md)
-2. [Training Guide](docs/training-guide.md)
-3. [Usage Recipes](docs/usage-recipes.md)
-4. [Use Cases](docs/use-cases.md)
-5. [PageRank Analyzer Guide](docs/pagerank.md)
-6. [PageRank Graph Builders](docs/pagerank-graph-builders.md)
-7. [Predictive Intelligence](docs/predictive-intelligence.md)
-8. [Architecture](docs/architecture.md)
-9. [Artisan Command Reference](docs/command-reference.md)
-10. [Artisan Commands Use Cases](docs/use-cases/artisan-commands.md)
-11. [Technical Reference](docs/technical-reference.md)
-12. [Contributing](docs/contributing.md)
+2. [Configuration Guide](docs/configuration.md)
+3. [Training Guide](docs/training-guide.md)
+4. [Usage Recipes](docs/usage-recipes.md)
+5. [Use Cases](docs/use-cases.md)
+6. [PageRank Analyzer Guide](docs/pagerank.md)
+7. [PageRank Graph Builders](docs/pagerank-graph-builders.md)
+8. [Predictive Intelligence](docs/predictive-intelligence.md)
+9. [Architecture](docs/architecture.md)
+10. [Artisan Command Reference](docs/command-reference.md)
+11. [Artisan Commands Use Cases](docs/use-cases/artisan-commands.md)
+12. [Technical Reference](docs/technical-reference.md)
+13. [Contributing](docs/contributing.md)
 
 ## Quick Peek
 
