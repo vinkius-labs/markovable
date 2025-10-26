@@ -8,6 +8,7 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 
 - **Human DX** – API-first design, fluent builders, and sensible defaults keep developers in flow.
 - **Production Ready** – Cache, database, and file storage drivers out of the box, plus queue-friendly jobs.
+- **SaaS Native** – Multi-tenant caching, predictive scoring, and lifecycle workflows keep subscription products informed in real time.
 - **Composable** – Extend analyzers, generators, and builders to fit any domain-specific language or dataset.
 - **Observable** – Built-in events, anomaly alerts, and exports make analytics, monitoring, and audits effortless.
 
@@ -17,26 +18,31 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 2. [Training Guide](docs/training-guide.md)
 3. [Usage Recipes](docs/usage-recipes.md)
 4. [Use Cases](docs/use-cases.md)
-5. [Architecture](docs/architecture.md)
-6. [Contributing](docs/contributing.md)
-7. [Technical Reference](docs/technical-reference.md)
+5. [Predictive Intelligence](docs/predictive-intelligence.md)
+6. [Architecture](docs/architecture.md)
+7. [Contributing](docs/contributing.md)
+8. [Technical Reference](docs/technical-reference.md)
 
 ## Quick Peek
 
 ```php
 use VinkiusLabs\Markovable\Facades\Markovable;
 
-Markovable::train([
-    'Every release deserves a narrative arc.',
-    'Markovable keeps product storytelling adaptive.',
-])->cache('product-narrative');
+$baseline = 'analytics::predictive-saas';
 
-$teaser = Markovable::cache('product-narrative')
-    ->generate(18, ['seed' => 'Every release']);
+Markovable::chain('analytics')
+    ->cache($baseline)
+    ->train($historicalSessions);
 
-$nextSteps = Markovable::analyze('navigation')
-    ->cache('product-narrative')
-    ->predict('launch timeline', 3);
+$insights = Markovable::predictive($baseline)
+    ->dataset($latestTenantSnapshots)
+    ->usingOptions([
+        'churn' => ['include_recommendations' => true],
+        'ltv' => ['segments' => ['self_serve', 'enterprise'], 'include_historical' => true],
+    ]);
+
+$churnAlerts = $insights->churnScore()->get();
+$ltvReport = $insights->ltv()->get();
 ```
 
 ## What’s Inside

@@ -8,6 +8,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
 use VinkiusLabs\Markovable\Builders\AnalyticsBuilder;
+use VinkiusLabs\Markovable\Builders\PredictiveBuilder;
 use VinkiusLabs\Markovable\Builders\TextBuilder;
 use VinkiusLabs\Markovable\Contracts\Analyzer as AnalyzerContract;
 use VinkiusLabs\Markovable\Contracts\Generator as GeneratorContract;
@@ -56,6 +57,17 @@ class MarkovableManager
             ?? MarkovableChain::class;
 
         return $this->app->make($resolver, ['manager' => $this, 'context' => $context]);
+    }
+
+    public function predictive(string $baselineKey, array $options = [], ?string $context = null, ?string $storage = null): PredictiveBuilder
+    {
+        $builder = new PredictiveBuilder($this, $baselineKey, $storage, $context);
+
+        if ($options !== []) {
+            $builder->usingOptions($options);
+        }
+
+        return $builder;
     }
 
     public function analyzer(string $name): AnalyzerContract

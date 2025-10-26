@@ -110,12 +110,14 @@ class Tokenizer
             return static::corpus($value);
         }
 
-        if ($value instanceof \Stringable || method_exists($value, '__toString')) {
-            return [(string) $value];
-        }
+        if (is_object($value)) {
+            if ($value instanceof \Stringable || method_exists($value, '__toString')) {
+                return [(string) $value];
+            }
 
-        if (method_exists($value, 'toArray')) {
-            return static::corpus($value->toArray());
+            if (method_exists($value, 'toArray')) {
+                return static::corpus($value->toArray());
+            }
         }
 
         return [(string) $value];

@@ -144,6 +144,24 @@ $report = Markovable::builder('analytics')
     ->probabilitiesFor('billing_information');
 ```
 
+### PredictiveBuilder (`Builders/PredictiveBuilder.php`)
+- Coordinates churn scoring, LTV forecasting, seasonal projections, and next-best action recommendations.
+- Inherits cached datasets from `MarkovableManager::predictive($baselineKey)` and accepts ad-hoc overrides via `dataset()`.
+- Use `usingOptions()` to configure features, horizons, exclusion lists, and confidence bands before invoking each predictor.
+- Reference: [Predictive Intelligence Guide](./predictive-intelligence.md) and [Predictive Use Cases](./use-cases/predictive-intelligence.md).
+
+```php
+$builder = Markovable::predictive('analytics::predictive-retention')
+    ->dataset($liveSnapshots)
+    ->usingOptions([
+        'churn' => ['include_recommendations' => true],
+        'forecast' => ['metric' => 'monthly_recurring_revenue', 'confidence' => 0.9],
+    ]);
+
+$churn = $builder->churnScore()->get();
+$ltv = $builder->ltv()->includeHistoricalComparison()->get();
+```
+
 ## Storage Drivers
 
 | Driver | Class | Persistence | Notes |

@@ -17,6 +17,7 @@ use VinkiusLabs\Markovable\Events\PredictionMade;
 use VinkiusLabs\Markovable\Jobs\AnalyzePatternsJob;
 use VinkiusLabs\Markovable\Jobs\GenerateContentJob;
 use VinkiusLabs\Markovable\Jobs\TrainMarkovableJob;
+use VinkiusLabs\Markovable\Support\Dataset;
 use VinkiusLabs\Markovable\Support\MonitorPipeline;
 use VinkiusLabs\Markovable\Support\Tokenizer;
 
@@ -75,6 +76,9 @@ class MarkovableChain
     /** @var array<string, mixed> */
     private array $modelMeta = [];
 
+    /** @var array<int, array<string, mixed>> */
+    private array $records = [];
+
     public function __construct(MarkovableManager $manager, string $context = 'text')
     {
         $this->manager = $manager;
@@ -107,6 +111,7 @@ class MarkovableChain
      */
     public function train($value): self
     {
+        $this->records = Dataset::normalize($value);
         $this->corpus = Tokenizer::corpus($value);
         $this->buildModel();
         $this->persistModelIfNeeded();
@@ -484,6 +489,8 @@ class MarkovableChain
                 $this->transitionMap = $payload['transitions'] ?? [];
                 $this->modelMeta = $payload['meta'] ?? [];
                 $this->sequenceFrequencies = $this->modelMeta['sequence_frequencies'] ?? [];
+                $this->records = $payload['records'] ?? ($this->modelMeta['records'] ?? []);
+                unset($this->modelMeta['records']);
                 $this->rebuildModelMetadataIfNeeded();
                 $this->trained = true;
 
@@ -610,6 +617,8 @@ class MarkovableChain
             return;
         }
 
+        unset($this->modelMeta['records']);
+
         $storage = $this->resolveStorage();
         $storage->put($this->cacheKey, [
             'order' => $this->order,
@@ -619,6 +628,7 @@ class MarkovableChain
             'cumulative' => $this->modelCumulative,
             'transitions' => $this->transitionMap,
             'meta' => array_merge($this->modelMeta, $this->options['meta'] ?? []),
+            'records' => $this->records,
         ], $this->cacheTtl);
     }
 
@@ -717,6 +727,28 @@ class MarkovableChain
     public function getModelMeta(): array
     {
         return $this->modelMeta;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRecords(): array
+    {
+        if (empty($this->records) && $this->cacheKey) {
+            $this->ensureModel();
+        }
+
+        return $this->records;
+    }
+
+    /**
+     * @param  iterable<int, array<string, mixed>>  $records
+     */
+    public function withRecords(iterable $records): self
+    {
+        $this->records = Dataset::normalize($records);
+
+        return $this;
     }
 
     public function getManager(): MarkovableManager

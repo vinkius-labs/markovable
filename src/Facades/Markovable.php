@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \VinkiusLabs\Markovable\Analyzers\AnomalyDetector detectSeasonality(?string $baselineKey = null)
  * @method static \VinkiusLabs\Markovable\Detectors\ClusterAnalyzer cluster(?string $baselineKey = null)
  * @method static \VinkiusLabs\Markovable\Support\MonitorPipeline monitor(string $baselineKey)
+ * @method static \VinkiusLabs\Markovable\Builders\PredictiveBuilder predictive(string $baselineKey, array $options = [], ?string $context = null, ?string $storage = null)
  */
 class Markovable extends Facade
 {

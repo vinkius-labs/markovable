@@ -97,6 +97,32 @@ Markovable::storage('database')
 
 - **Benefits**: Differentiated product experiences, stickier customer workflows, recurring insight loops without manual analysis.
 
+## Predictive Intelligence War Room
+
+Turn noisy customer telemetry into churn alerts, revenue projections, and next-best actions your teams can trust.
+
+- **Docs**: [Predictive Intelligence Guide](./predictive-intelligence.md), [Predictive Builder Playbook](./use-cases/predictive-intelligence.md)
+- **Playbook**: [Predictive Intelligence Playbook](./use-cases/predictive-intelligence.md)
+- **How to use**
+  1. Cache predictive baselines per segment (`analytics::predictive-enterprise`, `analytics::predictive-growth`).
+  2. Stream live customer snapshots into the predictive builder and call the scoring engines needed by each team.
+  3. Route outputs to the right destinations: churn alerts to CRM, LTV tiers to finance dashboards, next-best actions to lifecycle campaigns.
+
+```php
+$insights = Markovable::predictive('analytics::predictive-enterprise')
+    ->dataset($latestSignals)
+    ->usingOptions([
+        'churn' => ['include_recommendations' => true],
+        'forecast' => ['metric' => 'monthly_recurring_revenue', 'confidence' => 0.9],
+    ]);
+
+$churn = $insights->churnScore()->get();
+$forecast = $insights->seasonalForecast()->horizon(3)->get();
+$actions = $insights->nextBestAction()->topN(2)->get();
+```
+
+- **Benefits**: Shared predictive ground truth across ops, success, and finance; resilient scoring even when upstream data is noisy; faster reactions to behavioural drift.
+
 ## SaaS Activation Loops
 
 Keep new accounts progressing toward value by predicting the next best activation step for each cohort.

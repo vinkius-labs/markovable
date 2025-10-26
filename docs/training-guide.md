@@ -73,6 +73,36 @@ Key options:
 
 The command validates inputs and reports missing files, models, or fields before any work is done.
 
+## Preparing Predictive Baselines
+
+Predictive workloads (churn, LTV, seasonal forecasts, next-best actions) rely on cached baselines that you train the same way as any other chain. The difference is how you reuse the baseline across multiple predictors inside the [Predictive Intelligence flow](./predictive-intelligence.md).
+
+1. Train an `analytics` chain with the historical journeys or telemetry that anchor your predictions.
+2. Cache it with a descriptive key (for example, `analytics::predictive-enterprise`).
+3. Rehydrate the baseline via `Markovable::predictive($key)` and stream fresh snapshots into `dataset()` when scoring.
+
+```php
+$baselineKey = 'analytics::predictive-retention';
+
+Markovable::chain('analytics')
+    ->cache($baselineKey)
+    ->train($historicalSessions);
+
+$builder = Markovable::predictive($baselineKey)
+    ->dataset($liveSnapshots)
+    ->usingOptions([
+        'churn' => ['include_recommendations' => true],
+        'forecast' => ['metric' => 'monthly_recurring_revenue', 'confidence' => 0.9],
+        'ltv' => ['segments' => ['self_serve', 'enterprise'], 'include_historical' => true],
+    ]);
+
+$churn = $builder->churnScore()->get();
+```
+
+For scenario-specific guidance, see the [Predictive Intelligence Playbook](./use-cases/predictive-intelligence.md).
+
+- **Multi-tenant tip**: store baseline keys per tenant or cohort (e.g., `analytics::predictive-tenant:{id}`) and reuse the same predictive builder to feed dashboards, renewal playbooks, and billing forecasts.
+
 ## Queueing Training Jobs
 
 For larger corpora or scheduled retraining, offload work to a queue worker:
