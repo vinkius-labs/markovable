@@ -17,26 +17,14 @@ class TextAnalyzer implements Analyzer
 
         $prefix = $this->resolvePrefix($model, $order, $seed, $initialStates);
         $distribution = $model[$prefix] ?? [];
+        $top = $this->selectTop($distribution, $limit);
 
-        arsort($distribution);
-
-        $predictions = [];
-        $count = 0;
-
-        foreach ($distribution as $token => $probability) {
-            if ($token === '__END__') {
-                continue;
-            }
-
-            $predictions[] = [
+        $predictions = array_map(static function ($token, $probability) {
+            return [
                 'sequence' => $token,
                 'probability' => $probability,
             ];
-
-            if (++$count >= $limit) {
-                break;
-            }
-        }
+        }, array_keys($top), $top);
 
         return [
             'seed' => $seed,
@@ -64,6 +52,49 @@ class TextAnalyzer implements Analyzer
         }
 
         return $initialStates[0] ?? array_key_first($model);
+    }
+
+    /**
+     * @param array<string, float> $distribution
+     * @return array<string, float>
+     */
+    private function selectTop(array $distribution, int $limit): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        $top = [];
+
+        foreach ($distribution as $token => $probability) {
+            if ($token === '__END__') {
+                continue;
+            }
+
+            if (count($top) < $limit) {
+                $top[$token] = $probability;
+
+                if (count($top) === $limit) {
+                    asort($top);
+                }
+
+                continue;
+            }
+
+            $lowestProbability = reset($top);
+
+            if ($probability <= $lowestProbability) {
+                continue;
+            }
+
+            $top[$token] = $probability;
+            asort($top);
+            array_shift($top);
+        }
+
+        arsort($top);
+
+        return $top;
     }
 }
 

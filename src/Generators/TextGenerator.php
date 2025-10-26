@@ -24,26 +24,36 @@ class TextGenerator implements Generator
 
         $seed = $options['seed'] ?? null;
         $state = $this->resolveInitialState($model, $initialStates, $order, $seed);
-        $stateTokens = explode(' ', $state);
         $output = [];
         $steps = 0;
+        $prefix = $state;
+        $cumulativeModel = $options['cumulative_model'] ?? [];
+        $transitions = $options['transitions'] ?? [];
 
         while ($steps < $length) {
-            $key = implode(' ', array_slice($stateTokens, -$order));
-            $choices = $model[$key] ?? null;
+            $choices = $model[$prefix] ?? null;
 
             if (! $choices) {
                 break;
             }
 
-            $next = WeightedRandom::choose($choices);
+            $next = null;
+
+            if (isset($cumulativeModel[$prefix])) {
+                $bucket = $cumulativeModel[$prefix];
+                $next = WeightedRandom::chooseCumulative($bucket['tokens'], $bucket['cumulative']);
+            }
+
+            if ($next === null) {
+                $next = WeightedRandom::choose($choices);
+            }
 
             if ($next === null || $next === '__END__') {
                 break;
             }
 
             $output[] = $next;
-            $stateTokens[] = $next;
+            $prefix = $transitions[$prefix][$next] ?? $this->shiftPrefix($prefix, $next, $order);
             $steps++;
         }
 
@@ -69,6 +79,21 @@ class TextGenerator implements Generator
         }
 
         return $initialStates[array_rand($initialStates)];
+    }
+
+    private function shiftPrefix(string $prefix, string $nextToken, int $order): string
+    {
+        if ($order <= 1) {
+            return $nextToken;
+        }
+
+        $firstSpace = strpos($prefix, ' ');
+
+        if ($firstSpace === false) {
+            return $nextToken;
+        }
+
+        return substr($prefix, $firstSpace + 1) . ' ' . $nextToken;
     }
 }
 

@@ -21,7 +21,7 @@ class WeightedRandom
             return $uniform[array_rand($uniform)];
         }
 
-        $threshold = mt_rand() / mt_getrandmax() * $total;
+        $threshold = lcg_value() * $total;
         $cumulative = 0.0;
 
         foreach ($weights as $key => $weight) {
@@ -33,6 +33,33 @@ class WeightedRandom
         }
 
         return array_key_first($weights);
+    }
+
+    /**
+     * @param array<int, string> $tokens
+     * @param array<int, float> $cumulative
+     */
+    public static function chooseCumulative(array $tokens, array $cumulative): ?string
+    {
+        if (empty($tokens) || empty($cumulative)) {
+            return null;
+        }
+
+        $threshold = lcg_value();
+        $low = 0;
+        $high = count($cumulative) - 1;
+
+        while ($low < $high) {
+            $mid = intdiv($low + $high, 2);
+
+            if ($threshold <= $cumulative[$mid]) {
+                $high = $mid;
+            } else {
+                $low = $mid + 1;
+            }
+        }
+
+        return $tokens[$low] ?? end($tokens);
     }
 }
 

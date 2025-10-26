@@ -36,6 +36,12 @@ class MarkovableChain
     /** @var array<int, string> */
     private array $initialStates = [];
 
+    /** @var array<string, array{tokens: array<int, string>, cumulative: array<int, float>}> */
+    private array $modelCumulative = [];
+
+    /** @var array<string, array<string, string>> */
+    private array $transitionMap = [];
+
     private bool $trained = false;
 
     private ?string $cacheKey = null;
@@ -141,6 +147,8 @@ class MarkovableChain
         $result = $generator->generate($this->model, $length, array_merge($this->options, $options, [
             'initial_states' => $this->initialStates,
             'order' => $this->order,
+            'cumulative_model' => $this->modelCumulative,
+            'transitions' => $this->transitionMap,
         ]));
         $this->lastGenerated = $result;
 
@@ -358,6 +366,8 @@ class MarkovableChain
             'order' => $this->order,
             'model' => $this->model,
             'initial_states' => $this->initialStates,
+            'cumulative' => $this->modelCumulative,
+            'transitions' => $this->transitionMap,
         ];
 
         if (! is_dir(dirname($path))) {
@@ -427,6 +437,9 @@ class MarkovableChain
                 $this->model = $payload['model'] ?? [];
                 $this->initialStates = $payload['initial_states'] ?? [];
                 $this->context = $payload['context'] ?? $this->context;
+                $this->modelCumulative = $payload['cumulative'] ?? [];
+                $this->transitionMap = $payload['transitions'] ?? [];
+                $this->rebuildModelMetadataIfNeeded();
                 $this->trained = true;
 
                 return;
@@ -446,6 +459,8 @@ class MarkovableChain
     {
         $this->model = [];
         $this->initialStates = [];
+        $this->modelCumulative = [];
+        $this->transitionMap = [];
         $this->trained = false;
 
         $order = $this->order;
@@ -459,29 +474,33 @@ class MarkovableChain
                 continue;
             }
 
-            $tokens = array_merge($startTokens, $tokens);
-            $tokens[] = '__END__';
+            $sequence = array_merge($startTokens, $tokens);
+            $sequence[] = '__END__';
 
-            $initialPrefixTokens = array_slice($tokens, 0, $order);
-            $initialPrefix = implode(' ', $initialPrefixTokens);
+            $initialPrefix = implode(' ', array_slice($sequence, 0, $order));
 
             if (! isset($initialStateSet[$initialPrefix])) {
                 $initialStateSet[$initialPrefix] = true;
                 $this->initialStates[] = $initialPrefix;
             }
 
-            $totalTokens = count($tokens);
+            $totalTokens = count($sequence);
+            $prefix = $initialPrefix;
 
             for ($i = $order; $i < $totalTokens; $i++) {
-                $prefixTokens = array_slice($tokens, $i - $order, $order);
-                $prefix = implode(' ', $prefixTokens);
-                $next = $tokens[$i];
+                $next = $sequence[$i];
 
                 if (! isset($this->model[$prefix])) {
                     $this->model[$prefix] = [];
                 }
 
                 $this->model[$prefix][$next] = ($this->model[$prefix][$next] ?? 0) + 1;
+
+                if ($next === '__END__') {
+                    break;
+                }
+
+                $prefix = $this->nextPrefixFrom($prefix, $next, $order);
             }
         }
 
@@ -493,10 +512,26 @@ class MarkovableChain
             }
 
             $normalizer = 1 / $sum;
+            $cumulative = [];
+            $tokens = [];
+            $runningTotal = 0.0;
 
             foreach ($counts as $token => $count) {
-                $counts[$token] = $count * $normalizer;
+                $probability = $count * $normalizer;
+                $counts[$token] = $probability;
+                $runningTotal += $probability;
+                $tokens[] = $token;
+                $cumulative[] = $runningTotal;
+
+                if ($token !== '__END__') {
+                    $this->transitionMap[$prefix][$token] = $this->nextPrefixFrom($prefix, $token, $order);
+                }
             }
+
+            $this->modelCumulative[$prefix] = [
+                'tokens' => $tokens,
+                'cumulative' => $cumulative,
+            ];
         }
 
         unset($counts);
@@ -524,6 +559,8 @@ class MarkovableChain
             'model' => $this->model,
             'initial_states' => $this->initialStates,
             'context' => $this->context,
+            'cumulative' => $this->modelCumulative,
+            'transitions' => $this->transitionMap,
             'meta' => $this->options['meta'] ?? [],
         ], $this->cacheTtl);
     }
@@ -559,5 +596,54 @@ class MarkovableChain
     private function startTokens(): array
     {
         return array_fill(0, $this->order, '__START__');
+    }
+
+    private function nextPrefixFrom(string $currentPrefix, string $nextToken, int $order): string
+    {
+        if ($order <= 1) {
+            return $nextToken;
+        }
+
+        $firstSpace = strpos($currentPrefix, ' ');
+
+        if ($firstSpace === false) {
+            return $nextToken;
+        }
+
+        return substr($currentPrefix, $firstSpace + 1) . ' ' . $nextToken;
+    }
+
+    private function rebuildModelMetadataIfNeeded(): void
+    {
+        if (! empty($this->modelCumulative) && ! empty($this->transitionMap)) {
+            return;
+        }
+
+        $this->modelCumulative = [];
+        $this->transitionMap = [];
+        $order = $this->order;
+
+        foreach ($this->model as $prefix => $distribution) {
+            $cumulative = [];
+            $tokens = [];
+            $runningTotal = 0.0;
+
+            foreach ($distribution as $token => $probability) {
+                $runningTotal += (float) $probability;
+                $tokens[] = $token;
+                $cumulative[] = $runningTotal;
+
+                if ($token !== '__END__') {
+                    $this->transitionMap[$prefix][$token] = $this->nextPrefixFrom($prefix, $token, $order);
+                }
+            }
+
+            if ($tokens) {
+                $this->modelCumulative[$prefix] = [
+                    'tokens' => $tokens,
+                    'cumulative' => $cumulative,
+                ];
+            }
+        }
     }
 }
