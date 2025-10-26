@@ -9,6 +9,7 @@ This reference compiles every core subsystem exposed by Markovable and illustrat
 ### Chain Lifecycle
 - `Markovable::chain(string $context = 'text')` instantiates `src/MarkovableChain.php` with the requested context.
 - A chain transitions through stages: configure (order, options, storage) → ingest corpus via `train()` / `trainFrom()` → optionally cache → execute `generate()` / `analyze()` / `predict()`.
+- Call `incremental()` before `train()` to merge a fresh corpus into the cached model keyed via `cache()`, keeping long-running models updated without rebuilding from scratch.
 - Tokenization is handled automatically via `Support/Tokenizer`. Every input is normalized to whitespace-delimited tokens; override by pre-processing data before training.
 
 ```php
@@ -19,6 +20,12 @@ $chain = Markovable::chain('text')
     ->trainFrom($documents);
 
 $outline = $chain->generate(120, ['seed' => 'Release highlights']);
+
+$chain = Markovable::chain('text')
+    ->order(3)
+    ->cache('docs:v1')
+    ->incremental()
+    ->trainFrom($newDocuments);
 ```
 
 ### Contexts and Builders
@@ -191,10 +198,29 @@ Override per chain via `useStorage('database')` or per cache call `cache($key, t
 - Storage payload schema contains `model`, `order`, `initial_states`, `context`, and optional `meta` fields.
 - When anomaly migrations are published, detections land in `markovable_anomalies`, pattern alerts in `markovable_pattern_alerts`, and cluster summaries in `markovable_cluster_profiles`.
 
+## Snapshots and Versioning
+- Persist long-term model checkpoints with `markovable:snapshot`, supporting database rows or filesystem artifacts (including arbitrary Laravel disks via `--storage=disk:name`).
+- Compression (`--compress`) applies `gzencode` before persistence and can be layered with Laravel encryption (`--encrypt`) for sensitive models.
+- Snapshot metadata records metric summaries, storage sizes, and context inside `markovable_model_snapshots`.
+- Provide `--from-storage` to snapshot models stored away from the default driver.
+
+## Scheduling Automation
+- Manage recurring jobs through `markovable:schedule`. Supported actions include `train`, `detect`, `report`, and `snapshot`.
+- Frequencies accept `daily`, `hourly`, `weekly`, `monthly`, or a custom cron expression (`--frequency=cron --time="*/15 * * * *"`).
+- Schedules are persisted in `markovable_schedules` with UUID identifiers and track next-run timestamps for dashboarding.
+- Attach callbacks via `--callback=` to trigger follow-up Artisan commands or webhooks after a schedule completes and toggle availability with `--enable` / `--disable`.
+
+## Reporting
+- `markovable:report` assembles summaries from cached models and the anomaly log, rendering via DOMPDF for PDF output alongside HTML, Markdown, JSON, or CSV payloads.
+- Filter sections with `--sections=summary,predictions` or narrow the observation window using human-friendly periods (`--period=24h`, `--period=4w`).
+- Deliver reports automatically through `--email` (PDFs are attached) or `--webhook` (PDFs ship as base64 payloads) and persist exports with `--save=storage/path/report.pdf|.json|...`.
+- Report construction reuses `ModelMetrics` statistics and `MarkovableChain::getSequenceFrequencies()` to surface top transitions.
+
 ## Queue Integration
 - `queue()` returns `Jobs/TrainMarkovableJob` pre-populated with chain state.
 - `generateAsync()` returns `Jobs/GenerateContentJob` ready for dispatch.
 - `analyzeAsync()` returns `Jobs/AnalyzePatternsJob` (propagates analyzer name and options).
+- `TrainMarkovableJob` honours the `incremental` flag and model metadata, enabling queued pipelines to append fresh data without manual cache hydration.
 - When `config('markovable.queue.enabled')` is true, you can centralize queue connection and queue name.
 
 ```php
@@ -225,18 +251,45 @@ Event::listen(PredictionMade::class, function (PredictionMade $event) {
 
 ## Commands
 
+- CLI usage details live in `docs/command-reference.md`; below are high-level summaries.
+
 ### `markovable:train`
-- Options: `--model`, `--field`, `--file`, `--order`, `--cache-key`, `--storage`, `--queue`.
-- Queued mode persists using a random cache key when not provided.
+- Ingest datasets from `--source=eloquent|csv|json|api|database` using `--data=` to locate the payload.
+- Persist the chain with `--cache`, choose storage via `--storage=`, and version releases through `--tag`.
+- `--incremental` merges the incoming corpus into the cached model referenced by the cache key or tag.
+- Queue workloads with `--async` and surface progress through `--notify=log|email:addr|webhook:url`.
+- Attach contextual `--meta key=value` pairs that flow into cache metadata and downstream reports.
 
 ### `markovable:generate`
-- Options: `--model`, `--field`, `--file`, `--words`, `--start`, `--cache-key`, `--order`, `--output`, `--queue`.
-- Accepts `start` seed to control the first prefix.
+- Train ad-hoc from `--model` / `--field` or text files via `--file` before generating.
+- Reuse cached models with `--cache-key` and adjust `--order` to match the stored chain.
+- Control output using `--start` seeds and `--words` length, persisting responses with `--output`.
+- Dispatch generation asynchronously through `--queue`, returning a `GenerateContentJob` instance.
 
 ### `markovable:analyze`
-- Arguments: `profile` (analyzer name).
-- Options: `--model`, `--field`, `--file`, `--order`, `--predict`, `--seed`, `--cache-key`, `--from`, `--to`, `--export`, `--probabilities`, `--queue`.
-- Exports CSV rows using `sequence;probability` formatting.
+- Provide the analyzer profile argument (e.g., `markovable:analyze churn`) to select the pipeline.
+- Load corpora from models, fields, or files using the same options as `markovable:generate`.
+- Use `--predict`, `--seed`, and `--probabilities` to tailor analyzer outputs to your workflow.
+- Export findings with `--export=path.csv` while `--from` and `--to` bound the evaluation window.
+- Append `--queue` when delegating analysis to the asynchronous job runner.
+
+### `markovable:snapshot`
+- Capture cached models to the database or filesystem with `--storage=database|file|disk:name`.
+- Layer `--compress`, `--encrypt`, `--tag`, and `--description` to control payload shape and metadata.
+- Read from alternate cache backends via `--from-storage` and customise disk locations with `--output-path`.
+- Snapshot entries, including metrics, live in `markovable_model_snapshots` for future restores or audits.
+
+### `markovable:schedule`
+- List existing definitions with `--list` or create/update by providing the action (`train|detect|report|snapshot`).
+- Configure cadence through `--frequency` and `--time`, supporting cron expressions when `--frequency=cron`.
+- Associate scopes via `--model` and downstream hooks via `--callback=artisan-command|https://webhook`.
+- Toggle availability with `--enable` / `--disable`; schedules persist in `markovable_schedules`.
+
+### `markovable:report`
+- Build analytics summaries from cached models and anomaly records across the requested period.
+- Select delivery format using `--format=pdf|html|json|csv|markdown` and restrict content with `--sections=`.
+- Adjust observation windows via human-readable `--period` values (`24h`, `7d`, `4w`, ...).
+- Deliver or store reports using `--email`, `--webhook`, and `--save`, with `--from-storage` targeting alternate caches.
 
 ## Facade Shortcuts and Macros
 - `Facades/Markovable` proxies to `MarkovableManager` and supports macro registration for custom conveniences.
@@ -267,6 +320,11 @@ Markovable::macro('cacheAndGenerate', function ($dataset, $key, $length = 50) {
 ### WeightedRandom (`Support/WeightedRandom.php`)
 - Accepts an associative array of token probabilities and yields randomized picks respecting the distribution.
 - Generators rely on this helper; reuse for auxiliary sampling needs.
+
+### ModelMetrics (`Support/ModelMetrics.php`)
+- Snapshot chain health after training with `ModelMetrics::fromChain($chain)`.
+- Exposes counts for states, transitions, unique sequences, and probabilities plus an overall confidence score.
+- Commands leverage these metrics for reporting; reuse them when instrumenting dashboards or notifications.
 
 ## Testing
 - Import `Testing/MarkovableAssertions` trait inside PHPUnit test cases.
@@ -317,7 +375,7 @@ class SequenceGeneratorTest extends TestCase
 ## Reference Paths
 - Configuration: `config/markovable.php`
 - Service Provider: `src/ServiceProvider.php` (registers bindings, publishes config, commands, migrations).
-- Migration stub: `database/migrations/2024_01_01_000000_create_markovable_models_table.php` (database storage schema).
+- Migration stubs: `database/migrations/2024_01_01_000000_create_markovable_models_table.php` (cached models), `database/migrations/2024_01_01_020000_create_markovable_snapshot_and_schedule_tables.php` (snapshots and schedules).
 - Doctrine-style contracts: `src/Contracts/Analyzer.php`, `src/Contracts/Generator.php`, `src/Contracts/Storage.php`.
 
 Use this document alongside the scenario-specific playbooks in `docs/use-cases/` to pinpoint implementation details tailored to your product domain.

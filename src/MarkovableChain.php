@@ -70,6 +70,8 @@ class MarkovableChain
     /** @var array<string, mixed> */
     private array $options = [];
 
+    private bool $incremental = false;
+
     /** @var array<string, int> */
     private array $sequenceFrequencies = [];
 
@@ -111,8 +113,27 @@ class MarkovableChain
      */
     public function train($value): self
     {
-        $this->records = Dataset::normalize($value);
-        $this->corpus = Tokenizer::corpus($value);
+        $newRecords = Dataset::normalize($value);
+        $newCorpus = Tokenizer::corpus($value);
+
+        if ($this->incremental && $this->cacheKey) {
+            $payload = $this->resolveStorage()->get($this->cacheKey);
+
+            $this->records = array_values(array_merge(
+                $payload['records'] ?? [],
+                $newRecords
+            ));
+
+            $existingCorpus = $payload['corpus'] ?? $this->reconstructCorpusFromPayload($payload ?? []);
+
+            $this->corpus = array_values(array_merge(
+                $existingCorpus,
+                $newCorpus
+            ));
+        } else {
+            $this->records = $newRecords;
+            $this->corpus = $newCorpus;
+        }
         $this->buildModel();
         $this->persistModelIfNeeded();
 
@@ -127,6 +148,13 @@ class MarkovableChain
     public function trainFrom($value): self
     {
         return $this->train($value);
+    }
+
+    public function incremental(bool $flag = true): self
+    {
+        $this->incremental = $flag;
+
+        return $this;
     }
 
     public function useStorage(string $name): self
@@ -490,6 +518,7 @@ class MarkovableChain
                 $this->modelMeta = $payload['meta'] ?? [];
                 $this->sequenceFrequencies = $this->modelMeta['sequence_frequencies'] ?? [];
                 $this->records = $payload['records'] ?? ($this->modelMeta['records'] ?? []);
+                $this->corpus = $payload['corpus'] ?? $this->corpus;
                 unset($this->modelMeta['records']);
                 $this->rebuildModelMetadataIfNeeded();
                 $this->trained = true;
@@ -629,7 +658,34 @@ class MarkovableChain
             'transitions' => $this->transitionMap,
             'meta' => array_merge($this->modelMeta, $this->options['meta'] ?? []),
             'records' => $this->records,
+            'corpus' => $this->corpus,
         ], $this->cacheTtl);
+    }
+
+    private function reconstructCorpusFromPayload(array $payload): array
+    {
+        $totals = $payload['meta']['sequence_frequencies'] ?? [];
+
+        if (empty($totals) || ! is_array($totals)) {
+            return [];
+        }
+
+        $corpus = [];
+
+        foreach ($totals as $sequence => $count) {
+            $sequence = trim((string) $sequence);
+            $repeat = (int) $count;
+
+            if ($sequence === '' || $repeat <= 0) {
+                continue;
+            }
+
+            for ($i = 0; $i < $repeat; $i++) {
+                $corpus[] = $sequence;
+            }
+        }
+
+        return $corpus;
     }
 
     private function resolveStorage(): StorageContract
@@ -721,6 +777,10 @@ class MarkovableChain
 
     public function getSequenceFrequencies(): array
     {
+        if ($this->sequenceFrequencies === [] && $this->cacheKey) {
+            $this->ensureModel();
+        }
+
         return $this->sequenceFrequencies;
     }
 

@@ -20,8 +20,10 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 4. [Use Cases](docs/use-cases.md)
 5. [Predictive Intelligence](docs/predictive-intelligence.md)
 6. [Architecture](docs/architecture.md)
-7. [Contributing](docs/contributing.md)
-8. [Technical Reference](docs/technical-reference.md)
+7. [Artisan Command Reference](docs/command-reference.md)
+8. [Artisan Commands Use Cases](docs/use-cases/artisan-commands.md)
+9. [Technical Reference](docs/technical-reference.md)
+10. [Contributing](docs/contributing.md)
 
 ## Quick Peek
 

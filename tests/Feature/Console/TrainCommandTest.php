@@ -3,104 +3,133 @@
 namespace VinkiusLabs\Markovable\Test\Feature\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use VinkiusLabs\Markovable\Facades\Markovable;
 use VinkiusLabs\Markovable\Jobs\TrainMarkovableJob;
 use VinkiusLabs\Markovable\Test\TestCase;
 
 class TrainCommandTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        Schema::dropIfExists('train_command_models');
-
-        parent::tearDown();
-    }
-
-    public function test_train_command_trains_model_from_file(): void
+    public function test_train_command_trains_and_caches_from_csv(): void
     {
         $file = __DIR__.'/../../Fixtures/corpus.txt';
+        $modelKey = 'user-navigation';
 
         $this->artisan('markovable:train', [
-            '--file' => $file,
-            '--cache-key' => 'command-train',
+            'model' => $modelKey,
+            '--source' => 'csv',
+            '--data' => $file,
+            '--cache' => true,
         ])->assertSuccessful();
 
-        $chain = Markovable::chain()->cache('command-train');
+        $chain = Markovable::chain('text')->cache($modelKey.':latest');
 
         $this->assertNotEmpty($chain->toProbabilities());
     }
 
-    public function test_train_command_can_dispatch_to_queue(): void
+    public function test_train_command_dispatches_async_job(): void
     {
         Bus::fake();
 
         $file = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:train', [
-            '--file' => $file,
-            '--cache-key' => 'queued-train',
-            '--queue' => true,
+            'model' => 'queued-model',
+            '--source' => 'csv',
+            '--data' => $file,
+            '--cache' => true,
+            '--async' => true,
         ])->assertSuccessful();
 
         Bus::assertDispatched(TrainMarkovableJob::class);
     }
 
-    public function test_train_command_fails_when_no_data_provided(): void
+    public function test_train_command_supports_incremental_training(): void
     {
-        $this->artisan('markovable:train')
-            ->expectsOutput('No training data found.')
-            ->assertExitCode(Command::FAILURE);
-    }
-
-    public function test_train_command_errors_when_file_missing(): void
-    {
-        $missing = __DIR__.'/missing.txt';
+        $modelKey = 'incremental-model';
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
 
         $this->artisan('markovable:train', [
-            '--file' => $missing,
-        ])->expectsOutput('File '.$missing.' was not found.')
-            ->assertExitCode(Command::FAILURE);
-    }
+            'model' => $modelKey,
+            '--source' => 'csv',
+            '--data' => $file,
+            '--cache' => true,
+        ])->assertSuccessful();
 
-    public function test_train_command_errors_when_field_missing_for_model(): void
-    {
-        $this->prepareModelTable();
+        $extraData = $this->createTemporaryCsv(['extra sequence one', 'another sequence two']);
 
         $this->artisan('markovable:train', [
-            '--model' => TrainCommandModel::class,
-        ])->expectsOutput('You must provide the --field option when training from a model.')
-            ->assertExitCode(Command::FAILURE);
+            'model' => $modelKey,
+            '--source' => 'csv',
+            '--data' => $extraData,
+            '--cache' => true,
+            '--incremental' => true,
+        ])->assertSuccessful();
+
+        $chain = Markovable::chain('text')->cache($modelKey.':latest');
+        $frequencies = $chain->getSequenceFrequencies();
+
+        $this->assertArrayHasKey('extra sequence one', $frequencies);
+        $this->assertArrayHasKey('another sequence two', $frequencies);
     }
 
-    public function test_train_command_errors_when_model_not_found(): void
+    public function test_train_command_requires_data(): void
     {
         $this->artisan('markovable:train', [
-            '--model' => 'Unknown\\Model',
-            '--field' => 'content',
-        ])->expectsOutput('Model Unknown\\Model was not found.')
+            'model' => 'no-data',
+        ])->expectsOutput('Provide --data with an Eloquent model class when using the eloquent source.')
             ->assertExitCode(Command::FAILURE);
     }
 
-    private function prepareModelTable(): void
+    public function test_train_command_validates_missing_source_file(): void
     {
-        if (! Schema::hasTable('train_command_models')) {
-            Schema::create('train_command_models', function (Blueprint $table) {
-                $table->increments('id');
-                $table->string('content');
-            });
-        }
+        $missing = Str::uuid().'.csv';
+
+        $this->artisan('markovable:train', [
+            'model' => 'missing-file',
+            '--source' => 'csv',
+            '--data' => $missing,
+        ])->expectsOutput('Provide --data with a readable CSV file path.')
+            ->assertExitCode(Command::FAILURE);
     }
-}
 
-class TrainCommandModel extends Model
-{
-    protected $table = 'train_command_models';
+    public function test_train_command_sends_log_notification(): void
+    {
+        Mail::fake();
 
-    protected $guarded = [];
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
 
-    public $timestamps = false;
+        $this->artisan('markovable:train', [
+            'model' => 'notify-model',
+            '--source' => 'csv',
+            '--data' => $file,
+            '--cache' => true,
+            '--notify' => 'log',
+        ])->assertSuccessful();
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_incremental_training_without_cache_fails(): void
+    {
+        $file = __DIR__.'/../../Fixtures/corpus.txt';
+
+        $this->artisan('markovable:train', [
+            'model' => 'no-cache',
+            '--source' => 'csv',
+            '--data' => $file,
+            '--incremental' => true,
+        ])->expectsOutput('Incremental training requires the model to be cached. Use --cache or provide a tag.')
+            ->assertExitCode(Command::FAILURE);
+    }
+
+    private function createTemporaryCsv(array $rows): string
+    {
+        $path = sys_get_temp_dir().'/markovable_'.Str::uuid().'.csv';
+        file_put_contents($path, implode(PHP_EOL, $rows));
+
+        return $path;
+    }
 }

@@ -32,6 +32,8 @@ class TrainMarkovableJob implements ShouldQueue
     /** @var array<string, mixed> */
     private array $options;
 
+    private bool $incremental;
+
     /**
      * @param  array<int, string>  $corpus
      * @param  array<string, mixed>  $options
@@ -51,6 +53,8 @@ class TrainMarkovableJob implements ShouldQueue
         $this->cacheKey = $cacheKey;
         $this->cacheTtl = $cacheTtl;
         $this->storageName = $storageName;
+        $this->incremental = (bool) ($options['incremental'] ?? false);
+        unset($options['incremental']);
         $this->options = $options;
     }
 
@@ -60,6 +64,10 @@ class TrainMarkovableJob implements ShouldQueue
 
         if ($this->storageName) {
             $chain->useStorage($this->storageName);
+        }
+
+        if ($this->incremental) {
+            $chain->incremental();
         }
 
         $chain->trainFrom($this->corpus);

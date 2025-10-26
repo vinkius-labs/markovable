@@ -8,6 +8,9 @@ use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use VinkiusLabs\Markovable\Commands\AnalyzeCommand;
 use VinkiusLabs\Markovable\Commands\DetectAnomaliesCommand;
 use VinkiusLabs\Markovable\Commands\GenerateCommand;
+use VinkiusLabs\Markovable\Commands\ReportCommand;
+use VinkiusLabs\Markovable\Commands\ScheduleCommand;
+use VinkiusLabs\Markovable\Commands\SnapshotCommand;
 use VinkiusLabs\Markovable\Commands\TrainCommand;
 use VinkiusLabs\Markovable\Observers\AutoTrainObserver;
 
@@ -63,6 +66,9 @@ class ServiceProvider extends BaseServiceProvider
             GenerateCommand::class,
             AnalyzeCommand::class,
             DetectAnomaliesCommand::class,
+            SnapshotCommand::class,
+            ScheduleCommand::class,
+            ReportCommand::class,
         ]);
     }
 
