@@ -41,4 +41,13 @@ return [
         'text' => TextAnalyzer::class,
         'navigation' => NavigationAnalyzer::class,
     ],
+
+    'anomaly' => [
+        'persist' => true,
+        'dispatch_events' => true,
+        'default_threshold' => 0.05,
+        'seasonality' => [
+            'threshold' => 0.3,
+        ],
+    ],
 ];

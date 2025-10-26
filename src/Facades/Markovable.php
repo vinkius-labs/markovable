@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Facade;
  * @method static \VinkiusLabs\Markovable\MarkovableChain trainFrom($value)
  * @method static \VinkiusLabs\Markovable\MarkovableChain order(int $order)
  * @method static \VinkiusLabs\Markovable\MarkovableChain analyze($subject = null, array $options = [])
+ * @method static \VinkiusLabs\Markovable\Analyzers\AnomalyDetector detect(string $baselineKey, $current = null)
+ * @method static \VinkiusLabs\Markovable\Analyzers\AnomalyDetector detectSeasonality(?string $baselineKey = null)
+ * @method static \VinkiusLabs\Markovable\Detectors\ClusterAnalyzer cluster(?string $baselineKey = null)
+ * @method static \VinkiusLabs\Markovable\Support\MonitorPipeline monitor(string $baselineKey)
  */
 class Markovable extends Facade
 {

@@ -15,6 +15,9 @@ use VinkiusLabs\Markovable\Events\PredictionMade;
 use VinkiusLabs\Markovable\Jobs\AnalyzePatternsJob;
 use VinkiusLabs\Markovable\Jobs\GenerateContentJob;
 use VinkiusLabs\Markovable\Jobs\TrainMarkovableJob;
+use VinkiusLabs\Markovable\Analyzers\AnomalyDetector;
+use VinkiusLabs\Markovable\Detectors\ClusterAnalyzer;
+use VinkiusLabs\Markovable\Support\MonitorPipeline;
 use VinkiusLabs\Markovable\Support\Tokenizer;
 
 class MarkovableChain
@@ -65,6 +68,12 @@ class MarkovableChain
 
     /** @var array<string, mixed> */
     private array $options = [];
+
+    /** @var array<string, int> */
+    private array $sequenceFrequencies = [];
+
+    /** @var array<string, mixed> */
+    private array $modelMeta = [];
 
     public function __construct(MarkovableManager $manager, string $context = 'text')
     {
@@ -299,6 +308,40 @@ class MarkovableChain
         );
     }
 
+    public function detect(string $baselineKey, $current = null): AnomalyDetector
+    {
+        if ($current !== null) {
+            $this->train($current);
+        }
+
+        if (empty($this->corpus)) {
+            throw new RuntimeException('Current dataset is empty. Train the chain before detecting anomalies.');
+        }
+
+        return new AnomalyDetector($this, $baselineKey, $this->storageName);
+    }
+
+    public function detectSeasonality(?string $baselineKey = null): AnomalyDetector
+    {
+        $key = $baselineKey ?? $this->cacheKey;
+
+        if (! $key) {
+            throw new RuntimeException('No baseline key provided for seasonality detection.');
+        }
+
+        return $this->detect($key)->detectSeasonality();
+    }
+
+    public function cluster(?string $baselineKey = null): ClusterAnalyzer
+    {
+        return new ClusterAnalyzer($this, $baselineKey, $this->storageName);
+    }
+
+    public function monitor(string $baselineKey): MonitorPipeline
+    {
+        return new MonitorPipeline($this, $baselineKey, $this->storageName);
+    }
+
     public function toArray(): array
     {
         if ($this->lastGenerated === null) {
@@ -439,6 +482,8 @@ class MarkovableChain
                 $this->context = $payload['context'] ?? $this->context;
                 $this->modelCumulative = $payload['cumulative'] ?? [];
                 $this->transitionMap = $payload['transitions'] ?? [];
+                $this->modelMeta = $payload['meta'] ?? [];
+                $this->sequenceFrequencies = $this->modelMeta['sequence_frequencies'] ?? [];
                 $this->rebuildModelMetadataIfNeeded();
                 $this->trained = true;
 
@@ -462,6 +507,8 @@ class MarkovableChain
         $this->modelCumulative = [];
         $this->transitionMap = [];
         $this->trained = false;
+        $this->sequenceFrequencies = [];
+        $this->modelMeta = [];
 
         $order = $this->order;
         $startTokens = $this->startTokens();
@@ -473,6 +520,9 @@ class MarkovableChain
             if (empty($tokens)) {
                 continue;
             }
+
+            $key = implode(' ', $tokens);
+            $this->sequenceFrequencies[$key] = ($this->sequenceFrequencies[$key] ?? 0) + 1;
 
             $sequence = array_merge($startTokens, $tokens);
             $sequence[] = '__END__';
@@ -538,6 +588,13 @@ class MarkovableChain
 
         $this->trained = true;
 
+        $this->modelMeta = [
+            'sequence_frequencies' => $this->sequenceFrequencies,
+            'total_sequences' => array_sum($this->sequenceFrequencies),
+            'order' => $this->order,
+            'generated_at' => microtime(true),
+        ];
+
         if ($this->debug) {
             Log::debug('Markovable model built', [
                 'context' => $this->context,
@@ -561,7 +618,7 @@ class MarkovableChain
             'context' => $this->context,
             'cumulative' => $this->modelCumulative,
             'transitions' => $this->transitionMap,
-            'meta' => $this->options['meta'] ?? [],
+            'meta' => array_merge($this->modelMeta, $this->options['meta'] ?? []),
         ], $this->cacheTtl);
     }
 
@@ -645,5 +702,35 @@ class MarkovableChain
                 ];
             }
         }
+    }
+
+    public function getCorpus(): array
+    {
+        return $this->corpus;
+    }
+
+    public function getSequenceFrequencies(): array
+    {
+        return $this->sequenceFrequencies;
+    }
+
+    public function getModelMeta(): array
+    {
+        return $this->modelMeta;
+    }
+
+    public function getManager(): MarkovableManager
+    {
+        return $this->manager;
+    }
+
+    public function getCacheKey(): ?string
+    {
+        return $this->cacheKey;
+    }
+
+    public function getStorageName(): ?string
+    {
+        return $this->storageName;
     }
 }

@@ -1,6 +1,6 @@
 # Markovable
 
-Markovable is a Laravel-native engine for building adaptive Markov chains that learn from your product’s voice and user journeys. It turns familiar Eloquent patterns into powerful prediction, generation, and analysis flows so you can ship intelligent experiences without leaving PHP.
+Markovable is a Laravel-native engine for building adaptive Markov chains that learn from your product’s voice and user journeys. It turns familiar Eloquent patterns into powerful prediction, generation, anomaly detection, and analysis flows so you can ship intelligent experiences without leaving PHP.
 
 > "Give your data a memory and it will return with stories you never thought to ask." – The Markovable Manifesto ✨
 
@@ -9,7 +9,7 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 - **Human DX** – API-first design, fluent builders, and sensible defaults keep developers in flow.
 - **Production Ready** – Cache, database, and file storage drivers out of the box, plus queue-friendly jobs.
 - **Composable** – Extend analyzers, generators, and builders to fit any domain-specific language or dataset.
-- **Observable** – Built-in events and exports make analytics, monitoring, and audits effortless.
+- **Observable** – Built-in events, anomaly alerts, and exports make analytics, monitoring, and audits effortless.
 
 ## Table of Contents
 
@@ -42,7 +42,8 @@ $nextSteps = Markovable::analyze('navigation')
 
 - Feature-rich `MarkovableChain` for training, caching, generating, and analyzing sequences.
 - Generators tuned for natural language and navigation flows.
-- Analyzer strategies to surface probabilities and predict next-best actions.
+- Analyzer strategies to surface probabilities, detect anomalies, and predict next-best actions.
+- Detectors and monitoring pipelines to surface unseen sequences, emerging patterns, seasonality shifts, and behaviour drift.
 - Traits and observers that keep Eloquent models self-training.
 - Artisan commands to orchestrate training, generation, and analysis from the CLI.
 

@@ -90,3 +90,70 @@ Markovable::train($dataset)
 ```
 
 Bring these fragments into your stack, mix with your own flair, and Markovable will keep pace with your imagination.
+
+## 8. Detect Anomalies From Cached Baselines
+
+```php
+$anomalies = Markovable::train($latestTraffic)
+    ->detect('traffic:baseline')
+    ->unseenSequences()
+    ->emergingPatterns()
+    ->detectSeasonality()
+    ->drift()
+    ->threshold(0.08)
+    ->minimumFrequency(12)
+    ->orderBy('severity')
+    ->get();
+
+foreach ($anomalies as $alert) {
+    Notification::send($team, new UnexpectedFlowAlert($alert));
+}
+```
+
+## 9. Schedule Always-On Monitoring
+
+```php
+$summary = Markovable::train($slidingWindow)
+    ->monitor('traffic:baseline')
+    ->detectAnomalies([
+        'unseenSequences' => ['threshold' => 0.06, 'minLength' => 3],
+        'emergingPatterns' => ['minFrequency' => 18, 'growth' => 0.45],
+        'seasonality' => ['metrics' => ['weekday', 'hour']],
+        'drift' => ['drift_threshold' => 0.2],
+    ])
+    ->alerts([
+        'critical' => ['pagerduty' => 'markovable-critical'],
+        'high' => ['slack' => '#growth-alerts'],
+    ])
+    ->checkInterval('15 minutes')
+    ->start();
+
+cache(['markovable:latest-monitoring' => $summary], now()->addMinutes(15));
+```
+
+## 10. Cluster Navigation Patterns
+
+```php
+$profiles = Markovable::train($sessionSnippets)
+    ->cluster('traffic:baseline')
+    ->algorithm('kmeans')
+    ->numberOfClusters(4)
+    ->features(['frequency', 'length'])
+    ->analyze();
+
+foreach ($profiles as $cluster) {
+    Segment::upsert($cluster['profile'], $cluster['characteristics']);
+}
+```
+
+## 11. Run Anomaly Audits From The CLI
+
+```bash
+php artisan markovable:detect-anomalies \
+  --model=traffic:baseline \
+  --input=storage/app/navigation.ndjson \
+  --threshold=0.07 \
+  --min-frequency=20
+```
+
+Pipe the table output to `--format=json` (via `jq`) or redirect to logs for downstream automation.

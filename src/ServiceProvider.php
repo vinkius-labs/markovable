@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use VinkiusLabs\Markovable\Commands\AnalyzeCommand;
+use VinkiusLabs\Markovable\Commands\DetectAnomaliesCommand;
 use VinkiusLabs\Markovable\Commands\GenerateCommand;
 use VinkiusLabs\Markovable\Commands\TrainCommand;
 use VinkiusLabs\Markovable\Observers\AutoTrainObserver;
@@ -62,6 +63,7 @@ class ServiceProvider extends BaseServiceProvider
             TrainCommand::class,
             GenerateCommand::class,
             AnalyzeCommand::class,
+            DetectAnomaliesCommand::class,
         ]);
     }
 

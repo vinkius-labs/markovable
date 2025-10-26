@@ -81,6 +81,12 @@ $sequence = Markovable::generator('sequence')->generate($model, 5, [
 - Reports `path` tokens with `probability` and `confidence` (percentage).
 - Accepts filter metadata (`from`, `to`, `label`) which is preserved in response for auditing.
 
+### AnomalyDetector (`Analyzers/AnomalyDetector.php`)
+- Wraps a collection of `Contracts\Detector` implementations to contrast live data with cached baselines.
+- Fluent helpers: `unseenSequences()`, `emergingPatterns()`, `detectSeasonality()`, `drift()`, `threshold()`, `minimumFrequency()`, `seasonalityThreshold()`, `orderBy()`, `metrics()`, `seasonalityData()`, `withoutPersistence()`, `withoutEvents()`.
+- Persists anomalies to `Models\AnomalyRecord` and dispatches `Events\AnomalyDetected` / `Events\PatternEmerged` when configured.
+- Inject your own detectors by extending the class and registering a macro on `Markovable::detect()` or via service container binding.
+
 ### Custom Analyzer Registration
 
 ```php
@@ -90,6 +96,32 @@ Markovable::extendAnalyzer('emoji-text', function ($app, $manager) {
 
 $chain = Markovable::analyze('emoji-text')->trainFrom($payload);
 ```
+
+## Detectors & Monitoring
+
+### Detector Interface (`Contracts/Detector.php`)
+- Method signature: `detect(DetectionContext $context, array $config = []): array`.
+- Return payloads should include a `type` key plus detector-specific metadata.
+- Bundle reusable detectors in your own namespace and inject them via macros or subclasses of `Analyzers\AnomalyDetector`.
+
+### DetectionContext (`Support/DetectionContext.php`)
+- Provides access to the trained `MarkovableChain`, baseline probabilities, historical metadata, and current sequence frequencies.
+- Utility helpers: `probabilityOf()`, `probabilityFromTokens()`, `baselineFrequency()`, `countOccurrences()`, `totalCurrentSequences()`, `patternHistory()`, `seasonalityProfile()`.
+
+### Built-in Detectors
+- **UnseenSequenceDetector** – Flags sequences whose baseline probability falls beneath a configurable threshold.
+- **EmergingPatternDetector** – Highlights patterns whose frequency growth exceeds expectations compared to the baseline, enriched with trend analysis and confidence scoring.
+- **SeasonalAnalyzer** – Computes KL divergence across configurable temporal metrics to detect seasonality shifts.
+- **DriftDetector** – Monitors average sequence length changes to surface behaviour drift.
+
+### MonitorPipeline (`Support/MonitorPipeline.php`)
+- Fluent orchestrator that configures detectors, alert channels, and cadence: `detectAnomalies()`, `alerts()`, `checkInterval()`, `start()`.
+- Returns a structured summary with anomalies, resolved alert channels, and timestamps—ideal for cron jobs or scheduled commands.
+
+### ClusterAnalyzer (`Detectors/ClusterAnalyzer.php`)
+- Segments navigation sequences into behavioural clusters (`kmeans`, `dbscan`, or round-robin fallback).
+- Emits summary profiles (`cluster_id`, percentage, heuristically named segment, computed characteristics).
+- Dispatches `Events\ClusterShifted` when baseline and current profiles diverge.
 
 ## Builders
 
@@ -139,6 +171,7 @@ Override per chain via `useStorage('database')` or per cache call `cache($key, t
 - `cache(string $key, ?int $ttl = null, ?string $storage = null)` persists the trained model. When invoked pre-training, persistence is deferred until `train()` completes.
 - `toProbabilities()` returns the in-memory matrix for inspection; use `export($path)` to write to disk.
 - Storage payload schema contains `model`, `order`, `initial_states`, `context`, and optional `meta` fields.
+- When anomaly migrations are published, detections land in `markovable_anomalies`, pattern alerts in `markovable_pattern_alerts`, and cluster summaries in `markovable_cluster_profiles`.
 
 ## Queue Integration
 - `queue()` returns `Jobs/TrainMarkovableJob` pre-populated with chain state.
