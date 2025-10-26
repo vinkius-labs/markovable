@@ -97,4 +97,27 @@ Markovable::storage('database')
 
 - **Benefits**: Differentiated product experiences, stickier customer workflows, recurring insight loops without manual analysis.
 
+## SaaS Activation Loops
+
+Keep new accounts progressing toward value by predicting the next best activation step for each cohort.
+
+- **Docs**: [Markovable Chain](../src/MarkovableChain.php), [Train Command](../src/Commands/TrainCommand.php)
+- **Playbook**: [SaaS Activation Blueprint](./use-cases/saas-activation.md)
+- **How to use**
+  1. Stream activation events with contextual metadata like segment, plan tier, and trial age.
+  2. Train and cache sequences per segment (`activation-paths:mid-market`, `activation-paths:startup`).
+  3. Serve predictions inside onboarding flows or lifecycle campaigns and log accepted suggestions for retraining.
+
+```php
+$recommendations = Markovable::analyze('navigation')
+    ->cache('activation-paths:'.$segment)
+    ->predict($latestEventKey, 3);
+
+if ($recommendations->isNotEmpty()) {
+    $nudgeBus->dispatch($accountId, $recommendations->pluck('token'));
+}
+```
+
+- **Benefits**: Higher trial-to-paid conversion, tighter coordination between product and growth teams, automatic drift alerts that highlight when activation paths change.
+
 Markovable is intentionally composable. Start with a single experiment, then let curiosity and iteration guide the roadmap.

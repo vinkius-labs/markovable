@@ -14,11 +14,12 @@ Markovable is a Laravel-native engine for building adaptive Markov chains that l
 ## Table of Contents
 
 1. [Getting Started](docs/getting-started.md)
-2. [Usage Recipes](docs/usage-recipes.md)
-3. [Use Cases](docs/use-cases.md)
-4. [Architecture](docs/architecture.md)
-5. [Contributing](docs/contributing.md)
-6. [Technical Reference](docs/technical-reference.md)
+2. [Training Guide](docs/training-guide.md)
+3. [Usage Recipes](docs/usage-recipes.md)
+4. [Use Cases](docs/use-cases.md)
+5. [Architecture](docs/architecture.md)
+6. [Contributing](docs/contributing.md)
+7. [Technical Reference](docs/technical-reference.md)
 
 ## Quick Peek
 
